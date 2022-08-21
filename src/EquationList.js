@@ -1,8 +1,6 @@
 import React from 'react';
 import Equation from './Equation';
 
-
-
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -16,10 +14,10 @@ function plus() {
     const a = {};
     a.x = getRandomInt(1, 20);
     a.y = getRandomInt(1, 20);
-    a.operation = "+";
+    a.operation = '+';
     a.solution = a.x + a.y;
     a.id = i;
-    if (a.x + a.y < 1001) {
+    if (a.x + a.y < 21) {
       i++;
       equations.push(a);
     }
@@ -28,18 +26,15 @@ function plus() {
 }
 
 const EquationList = (props) => {
-
   const rows = () => {
     const equations = plus();
     const list = [];
-    for (let eq of equations) 
+    for (let eq of equations)
       list.push(<Equation eq={eq} key={eq.id.toString()} />);
     return list;
-  }    
+  };
 
-  return (
-     rows()
-  )
-}
+  return rows();
+};
 
-export default EquationList
+export default EquationList;
