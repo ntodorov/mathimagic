@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const Equation = (props) => {
   const { eq } = props;
@@ -8,17 +8,25 @@ const Equation = (props) => {
   const handleChange = (e) => {
     setAnswer(e.target.value);
     let label = '';
-    if (e.target.value) { 
+    if (e.target.value) {
       label = parseInt(e.target.value) === eq.solution ? 'Yes' : 'No';
-    };
-     
+    }
+
     setCorrect(label);
   };
 
-
   return (
-    <div>{eq.x} + {eq.y} = <input type="number" className='answer' value={answer} onChange={handleChange}></input> { correct }</div>
-  )
-}
+    <div>
+      {eq.x} + {eq.y} ={' '}
+      <input
+        type="number"
+        className="answer"
+        value={answer}
+        onChange={handleChange}
+      ></input>{' '}
+      {correct}
+    </div>
+  );
+};
 
-export default Equation
+export default Equation;
