@@ -10,7 +10,7 @@ function getRandomInt(min, max) {
 function plus() {
   let equations = [];
   let i = 1;
-  while (i < 21) {
+  while (i < 11) {
     const a = {};
     a.x = getRandomInt(1, 20);
     a.y = getRandomInt(1, 20);
