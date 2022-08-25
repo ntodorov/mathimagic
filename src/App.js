@@ -1,14 +1,10 @@
-
 import './App.css';
-import EquationList from './EquationList'; 
-
-
+import EquationList from './EquationList';
 
 function App() {
   return (
     <div className="App">
-       <EquationList />
-
+      <EquationList />
     </div>
   );
 }

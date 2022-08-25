@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import classnames from 'classnames';
+
+import './Equation.css';
 
 const Equation = (props) => {
   const { eq } = props;
@@ -17,14 +20,18 @@ const Equation = (props) => {
 
   return (
     <div>
-      {eq.x} + {eq.y} ={' '}
-      <input
-        type="number"
-        className="answer"
-        value={answer}
-        onChange={handleChange}
-      ></input>{' '}
-      {correct}
+      <h1>
+        {eq.x} + {eq.y} ={' '}
+        <input
+          type="number"
+          className="answer"
+          value={answer}
+          onChange={handleChange}
+        ></input>{' '}
+        <span className={correct === 'No' ? 'error' : 'correct'}>
+          {correct}
+        </span>
+      </h1>
     </div>
   );
 };

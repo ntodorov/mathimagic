@@ -10,7 +10,7 @@ function getRandomInt(min, max) {
 function plus() {
   let equations = [];
   let i = 1;
-  while (i < 51) {
+  while (i < 21) {
     const a = {};
     a.x = getRandomInt(1, 20);
     a.y = getRandomInt(1, 20);
@@ -34,7 +34,8 @@ const EquationList = (props) => {
     return list;
   };
 
-  return rows();
+  // return <Carousel>rows()</Carousel>;
+  return <div>{rows()}</div>;
 };
 
 export default EquationList;

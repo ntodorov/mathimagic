@@ -1,6 +1,25 @@
-.answer {
-  width: 100%;
+input {
+  width: 50px;
   margin-left: 0%;
-  font-size: 16px;
+  font-size: 32px;
   /* color: red; */
+}
+
+.error {
+  color: red;
+}
+.correct {
+  color: green;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
 }
