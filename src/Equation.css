@@ -1,8 +1,27 @@
+.card {
+  display: block;
+}
+
+.center {
+  margin: auto;
+  width: 270px;
+  /*border: 3px solid green;*/
+  padding: 10px;
+}
+
+.eq {
+  font-family: monospace;
+  font-size: 24px;
+}
+
 input {
   width: 50px;
   margin-left: 0%;
-  font-size: 32px;
-  /* color: red; */
+  font-size: 24px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  border-bottom: 1px solid black;
 }
 
 .error {
@@ -10,6 +29,19 @@ input {
 }
 .correct {
   color: green;
+}
+
+.right {
+  float: right;
+}
+
+.index {
+  font-family: sans-serif;
+  font-size: 16px;
+}
+
+.thick-filled-icons {
+  font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 48;
 }
 
 /* Chrome, Safari, Edge, Opera */

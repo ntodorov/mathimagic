@@ -19,8 +19,9 @@ const Equation = (props) => {
   };
 
   return (
-    <div>
-      <h1>
+    <div className="card center eq">
+      <span className="index">{'1)'}</span>
+      <span className="right">
         {eq.x} + {eq.y} ={' '}
         <input
           type="number"
@@ -31,7 +32,7 @@ const Equation = (props) => {
         <span className={correct === 'No' ? 'error' : 'correct'}>
           {correct}
         </span>
-      </h1>
+      </span>
     </div>
   );
 };
