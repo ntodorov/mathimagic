@@ -40,9 +40,9 @@ export default function Equation(props) {
             {!answer ? (
               ''
             ) : error ? (
-              <SentimentDissatisfiedIcon color="success" />
+              <SentimentDissatisfiedIcon color="error" />
             ) : (
-              <SentimentSatisfiedAltIcon color="error" />
+              <SentimentSatisfiedAltIcon color="success" />
             )}
           </Typography>
         </CardContent>
