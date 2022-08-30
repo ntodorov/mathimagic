@@ -15,7 +15,7 @@ export default function Equation(props) {
 
   const handleChange = (e) => {
     setAnswer(e.target.value);
-    setError(parseInt(e.target.value) != eq.solution);
+    setError(parseInt(e.target.value) !== eq.solution);
   };
 
   return (
