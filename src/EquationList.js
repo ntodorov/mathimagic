@@ -1,6 +1,8 @@
 import React from 'react';
 import Equation from './Equation';
 import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+// import { Box } from '@mui/system';
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -9,7 +11,9 @@ function getRandomInt(min, max) {
 }
 
 function plus() {
-  let equations = [];
+  const operation = {};
+  operation.name = 'Addition';
+  operation.equations = [];
   let i = 1;
   while (i < 11) {
     const a = {};
@@ -20,22 +24,33 @@ function plus() {
     a.id = i;
     if (a.x + a.y < 21) {
       i++;
-      equations.push(a);
+      operation.equations.push(a);
     }
   }
-  return equations;
+  return operation;
 }
 
 const EquationList = (props) => {
-  const rows = () => {
-    const equations = plus();
+  const operation = plus();
+  const rows = (equations) => {
     const list = [];
     for (let eq of equations)
       list.push(<Equation eq={eq} key={eq.id.toString()} />);
     return list;
   };
 
-  return <Container maxWidth="sm">{rows()}</Container>;
+  return (
+    <Container
+      maxWidth="xs"
+      fixed
+      sx={{
+        width: 300,
+      }}
+    >
+      <Typography variant="h5">{operation.name}</Typography>
+      {rows(operation.equations)}
+    </Container>
+  );
 };
 
 export default EquationList;

@@ -8,6 +8,16 @@ import { Chip } from '@mui/material';
 import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
+const emoji = (error) => (
+  <Box sx={{ float: 'right' }}>
+    {error ? (
+      <SentimentDissatisfiedIcon color="error" />
+    ) : (
+      <SentimentSatisfiedAltIcon color="success" />
+    )}
+  </Box>
+);
+
 export default function Equation(props) {
   const { eq } = props;
   const [answer, setAnswer] = React.useState('');
@@ -19,13 +29,13 @@ export default function Equation(props) {
   };
 
   return (
-    <Box sx={{ minWidth: 190, maxWidth: 200 }}>
+    <Box sx={{ display: 'inline' }}>
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex' }}>
             <Chip label={eq.id} size="small" />
           </Box>
-          <Typography variant="h5" component="div">
+          <Typography variant="h5">
             {eq.x} + {eq.y} ={' '}
             <TextField
               sx={{
@@ -34,16 +44,11 @@ export default function Equation(props) {
               error={error}
               variant="standard"
               onChange={handleChange}
+              autoComplete="off"
             >
               {answer}
             </TextField>
-            {!answer ? (
-              ''
-            ) : error ? (
-              <SentimentDissatisfiedIcon color="error" />
-            ) : (
-              <SentimentSatisfiedAltIcon color="success" />
-            )}
+            {!answer ? '' : emoji(error)}
           </Typography>
         </CardContent>
       </Card>
