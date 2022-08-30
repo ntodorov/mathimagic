@@ -1,40 +1,52 @@
-import React, { useState } from 'react';
-// import classnames from 'classnames';
+import * as React from 'react';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import { Chip } from '@mui/material';
+import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
-import './Equation.css';
-
-const Equation = (props) => {
+export default function Equation(props) {
   const { eq } = props;
-  const [answer, setAnswer] = useState('');
-  const [correct, setCorrect] = useState('');
+  const [answer, setAnswer] = React.useState('');
+  const [error, setError] = React.useState(false);
 
   const handleChange = (e) => {
     setAnswer(e.target.value);
-    let label = '';
-    if (e.target.value) {
-      label = parseInt(e.target.value) === eq.solution ? 'Yes' : 'No';
-    }
-
-    setCorrect(label);
+    setError(parseInt(e.target.value) != eq.solution);
   };
 
   return (
-    <div className="card center eq">
-      <span className="index">{'1)'}</span>
-      <span className="right">
-        {eq.x} + {eq.y} ={' '}
-        <input
-          type="number"
-          className="answer"
-          value={answer}
-          onChange={handleChange}
-        ></input>{' '}
-        <span className={correct === 'No' ? 'error' : 'correct'}>
-          {correct}
-        </span>
-      </span>
-    </div>
+    <Box sx={{ minWidth: 190, maxWidth: 200 }}>
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex' }}>
+            <Chip label={eq.id} size="small" />
+          </Box>
+          <Typography variant="h5" component="div">
+            {eq.x} + {eq.y} ={' '}
+            <TextField
+              sx={{
+                width: 25,
+              }}
+              error={error}
+              variant="standard"
+              onChange={handleChange}
+            >
+              {answer}
+            </TextField>
+            {!answer ? (
+              ''
+            ) : error ? (
+              <SentimentDissatisfiedIcon color="success" />
+            ) : (
+              <SentimentSatisfiedAltIcon color="error" />
+            )}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Box>
   );
-};
-
-export default Equation;
+}

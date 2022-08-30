@@ -1,5 +1,6 @@
 import React from 'react';
 import Equation from './Equation';
+import Container from '@mui/material/Container';
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -34,8 +35,7 @@ const EquationList = (props) => {
     return list;
   };
 
-  // return <Carousel>rows()</Carousel>;
-  return <div>{rows()}</div>;
+  return <Container maxWidth="sm">{rows()}</Container>;
 };
 
 export default EquationList;
