@@ -36,7 +36,7 @@ export default function Equation(props) {
             <Chip label={eq.id} size="small" />
           </Box>
           <Typography variant="h5">
-            {eq.x} + {eq.y} ={' '}
+            {eq.x} {eq.operation} {eq.y} ={' '}
             <TextField
               sx={{
                 width: 25,
