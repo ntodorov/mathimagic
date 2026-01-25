@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/mathimagic/static/css/main.1f74e802.css",
-    "main.js": "/mathimagic/static/js/main.4952cd57.js",
+    "main.css": "/mathimagic/static/css/main.8b6ecf1e.css",
+    "main.js": "/mathimagic/static/js/main.ecfcac04.js",
     "static/js/496.5ee7942c.chunk.js": "/mathimagic/static/js/496.5ee7942c.chunk.js",
     "static/media/roboto-latin-700-normal.woff2": "/mathimagic/static/media/roboto-latin-700-normal.3d32572dd5951c418e5b.woff2",
     "static/media/roboto-latin-500-normal.woff2": "/mathimagic/static/media/roboto-latin-500-normal.599f66a60bdf974e578e.woff2",
@@ -76,12 +76,12 @@
     "static/media/roboto-greek-ext-700-normal.woff": "/mathimagic/static/media/roboto-greek-ext-700-normal.28728bc8c64fa1bfd905.woff",
     "static/media/roboto-greek-ext-300-normal.woff": "/mathimagic/static/media/roboto-greek-ext-300-normal.f9bcba068dd8c29805b0.woff",
     "index.html": "/mathimagic/index.html",
-    "main.1f74e802.css.map": "/mathimagic/static/css/main.1f74e802.css.map",
-    "main.4952cd57.js.map": "/mathimagic/static/js/main.4952cd57.js.map",
+    "main.8b6ecf1e.css.map": "/mathimagic/static/css/main.8b6ecf1e.css.map",
+    "main.ecfcac04.js.map": "/mathimagic/static/js/main.ecfcac04.js.map",
     "496.5ee7942c.chunk.js.map": "/mathimagic/static/js/496.5ee7942c.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.1f74e802.css",
-    "static/js/main.4952cd57.js"
+    "static/css/main.8b6ecf1e.css",
+    "static/js/main.ecfcac04.js"
   ]
 }
