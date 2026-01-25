@@ -18,7 +18,7 @@ const emoji = (error) => (
   </Box>
 );
 
-export default function Equation(props) {
+function Equation(props) {
   const { eq, onAnswerChange } = props;
   const [answer, setAnswer] = React.useState('');
   const [error, setError] = React.useState(false);
@@ -111,3 +111,5 @@ export default function Equation(props) {
     </Box>
   );
 }
+
+export default React.memo(Equation);

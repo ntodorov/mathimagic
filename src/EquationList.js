@@ -52,17 +52,17 @@ const EquationList = (props) => {
   const [operation, setOperation] = React.useState(() => minus());
   const [answers, setAnswers] = React.useState({});
 
-  const handleAnswerChange = (id, payload) => {
+  const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({
       ...prev,
       [id]: payload,
     }));
-  };
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = React.useCallback(() => {
     setOperation(minus());
     setAnswers({});
-  };
+  }, []);
 
   const rows = (equations) => {
     const list = [];
