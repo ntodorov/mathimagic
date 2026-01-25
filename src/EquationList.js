@@ -1,6 +1,9 @@
 import React from 'react';
 import Equation from './Equation';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
+import LinearProgress from '@mui/material/LinearProgress';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -46,13 +49,39 @@ function minus() {
 }
 
 const EquationList = (props) => {
-  const operation = minus();
+  const [operation, setOperation] = React.useState(() => minus());
+  const [answers, setAnswers] = React.useState({});
+
+  const handleAnswerChange = (id, payload) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [id]: payload,
+    }));
+  };
+
+  const handleReset = () => {
+    setOperation(minus());
+    setAnswers({});
+  };
+
   const rows = (equations) => {
     const list = [];
     for (let eq of equations)
-      list.push(<Equation eq={eq} key={eq.id.toString()} />);
+      list.push(
+        <Equation
+          eq={eq}
+          key={eq.id.toString()}
+          onAnswerChange={handleAnswerChange}
+        />
+      );
     return list;
   };
+
+  const totalQuestions = operation.equations.length;
+  const answerEntries = Object.values(answers);
+  const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
+  const progressValue =
+    totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
 
   return (
     <Paper className="practiceCard" variant="outlined">
@@ -64,6 +93,37 @@ const EquationList = (props) => {
           <Typography variant="h6">{operation.name}</Typography>
         </Box>
         <Stack spacing={1.5}>{rows(operation.equations)}</Stack>
+        <Divider />
+        <Stack spacing={1.5}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ justifyContent: 'space-between' }}
+          >
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                Streak
+              </Typography>
+              <Typography variant="h6">{correctCount}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                Daily goal
+              </Typography>
+              <Typography variant="h6">
+                {correctCount}/{totalQuestions}
+              </Typography>
+            </Box>
+          </Stack>
+          <LinearProgress
+            aria-label="Session progress"
+            variant="determinate"
+            value={progressValue}
+          />
+          <Button variant="text" size="small" onClick={handleReset}>
+            Start a new set
+          </Button>
+        </Stack>
       </Stack>
     </Paper>
   );

@@ -19,20 +19,34 @@ const emoji = (error) => (
 );
 
 export default function Equation(props) {
-  const { eq } = props;
+  const { eq, onAnswerChange } = props;
   const [answer, setAnswer] = React.useState('');
   const [error, setError] = React.useState(false);
 
   const handleChange = (e) => {
     const nextValue = e.target.value;
+    const trimmedValue = nextValue.trim();
+    const hasAnswer = trimmedValue !== '';
+    const isCorrect = hasAnswer && Number(trimmedValue) === eq.solution;
+
     setAnswer(nextValue);
 
-    if (nextValue.trim() === '') {
+    if (!hasAnswer) {
       setError(false);
+      onAnswerChange?.(eq.id, {
+        value: nextValue,
+        hasAnswer,
+        isCorrect,
+      });
       return;
     }
 
-    setError(Number(nextValue) !== eq.solution);
+    setError(!isCorrect);
+    onAnswerChange?.(eq.id, {
+      value: nextValue,
+      hasAnswer,
+      isCorrect,
+    });
   };
 
   const hasAnswer = answer.trim() !== '';
