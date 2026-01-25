@@ -22,6 +22,8 @@ test('shows feedback icon based on answer', async () => {
   render(<Equation eq={equation} />);
 
   const input = screen.getByRole('textbox');
+  expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/nice job/i)).not.toBeInTheDocument();
   expect(
     screen.queryByTestId('SentimentSatisfiedAltIcon')
   ).not.toBeInTheDocument();
@@ -33,12 +35,15 @@ test('shows feedback icon based on answer', async () => {
   expect(
     screen.getByTestId('SentimentDissatisfiedIcon')
   ).toBeInTheDocument();
+  expect(screen.getByText(/try again/i)).toBeInTheDocument();
 
   await user.clear(input);
+  expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
   await user.type(input, '1');
   expect(
     screen.getByTestId('SentimentSatisfiedAltIcon')
   ).toBeInTheDocument();
+  expect(screen.getByText(/nice job/i)).toBeInTheDocument();
   expect(
     screen.queryByTestId('SentimentDissatisfiedIcon')
   ).not.toBeInTheDocument();
