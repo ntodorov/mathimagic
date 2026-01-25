@@ -29,7 +29,7 @@ export default function Equation(props) {
   };
 
   return (
-    <Box sx={{ display: 'inline' }}>
+    <Box sx={{ width: '100%' }}>
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex' }}>

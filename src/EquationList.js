@@ -1,8 +1,9 @@
 import React from 'react';
 import Equation from './Equation';
-import Container from '@mui/material/Container';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-// import { Box } from '@mui/system';
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -54,16 +55,17 @@ const EquationList = (props) => {
   };
 
   return (
-    <Container
-      maxWidth="xs"
-      fixed
-      sx={{
-        width: 300,
-      }}
-    >
-      <Typography variant="h5">{operation.name}</Typography>
-      {rows(operation.equations)}
-    </Container>
+    <Paper className="practiceCard" variant="outlined">
+      <Stack spacing={2}>
+        <Box>
+          <Typography variant="overline" color="text.secondary">
+            Practice
+          </Typography>
+          <Typography variant="h6">{operation.name}</Typography>
+        </Box>
+        <Stack spacing={1.5}>{rows(operation.equations)}</Stack>
+      </Stack>
+    </Paper>
   );
 };
 
