@@ -7,23 +7,6 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }
 
-function plus() {
-  const operation = {};
-  operation.name = 'Addition';
-  operation.equations = [];
-
-  while (operation.equations.length < 10) {
-    const a = {};
-    a.x = getRandomInt(1, 20);
-    a.y = getRandomInt(1, 20 - a.x);
-    a.operation = '+';
-    a.solution = a.x + a.y;
-    a.id = operation.equations.length + 1;
-    operation.equations.push(a);
-  }
-  return operation;
-}
-
 function minus() {
   const operation = {};
   operation.name = 'Subtraction';
