@@ -1,22 +1,22 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import { Chip } from '@mui/material';
-import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
-import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
-const emoji = (error) => (
-  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    {error ? (
-      <SentimentDissatisfiedIcon color="error" />
-    ) : (
-      <SentimentSatisfiedAltIcon color="success" />
-    )}
-  </Box>
-);
+const FeedbackIcon = ({ isError }) => {
+  const label = isError ? 'feedback-icon-incorrect' : 'feedback-icon-correct';
+
+  return (
+    <span
+      data-testid={label}
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold uppercase ${
+        isError
+          ? 'bg-rose-100 text-rose-700'
+          : 'bg-emerald-100 text-emerald-700'
+      }`}
+      aria-hidden="true"
+    >
+      {isError ? 'X' : 'OK'}
+    </span>
+  );
+};
 
 function Equation(props) {
   const { eq, onAnswerChange, inputRef } = props;
@@ -53,63 +53,42 @@ function Equation(props) {
   const feedbackText = hasAnswer ? (error ? 'Try again' : 'Nice job!') : '';
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Card
-        variant="outlined"
-        sx={{ borderRadius: 3, borderColor: 'rgba(31, 39, 51, 0.12)' }}
+    <div className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-slate-100 px-2 text-xs font-semibold text-slate-700">
+          {eq.id}
+        </span>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xl font-semibold text-slate-900">
+          {eq.x} {eq.operation} {eq.y} =
+        </span>
+        <input
+          value={answer}
+          className={`w-20 rounded-lg border px-3 py-2 text-center text-lg font-semibold text-slate-900 focus:outline-none focus:ring-2 ${
+            hasAnswer && error
+              ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-200'
+              : 'border-slate-300 focus:border-indigo-400 focus:ring-indigo-200'
+          }`}
+          type="tel"
+          onChange={handleChange}
+          ref={inputRef}
+          autoComplete="off"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          aria-label={`Answer for question ${eq.id}`}
+        />
+        {!hasAnswer ? null : <FeedbackIcon isError={error} />}
+      </div>
+      <p
+        className={`mt-2 text-xs font-semibold ${
+          error ? 'text-rose-600' : 'text-emerald-600'
+        }`}
+        aria-live="polite"
       >
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Chip label={eq.id} size="small" />
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 1,
-              mt: 1.5,
-            }}
-          >
-            <Typography variant="h5" component="span">
-              {eq.x} {eq.operation} {eq.y} =
-            </Typography>
-            <TextField
-              value={answer}
-              error={hasAnswer && error}
-              variant="outlined"
-              size="small"
-              type="tel"
-              onChange={handleChange}
-              inputRef={inputRef}
-              autoComplete="off"
-              inputProps={{
-                inputMode: 'numeric',
-                pattern: '[0-9]*',
-                'aria-label': `Answer for question ${eq.id}`,
-              }}
-              sx={{
-                width: 72,
-                '& input': {
-                  textAlign: 'center',
-                  fontSize: '1.25rem',
-                  padding: '8px 10px',
-                },
-              }}
-            />
-            {!hasAnswer ? '' : emoji(error)}
-          </Box>
-          <Typography
-            variant="caption"
-            color={error ? 'error.main' : 'success.main'}
-            sx={{ display: 'block', mt: 1 }}
-            aria-live="polite"
-          >
-            {feedbackText}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Box>
+        {feedbackText}
+      </p>
+    </div>
   );
 }
 

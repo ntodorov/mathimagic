@@ -16,7 +16,7 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 
 ## Tech Stack
 
-- React + MUI
+- React + Tailwind CSS
 - Create React App tooling
 
 ## Getting Started

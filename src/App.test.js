@@ -25,7 +25,7 @@ test('start practice moves focus to first question', async () => {
   await user.click(screen.getByRole('button', { name: /start practice/i }));
 
   const firstInput = screen.getByRole('textbox', {
-    name: /answer for question 1/i,
+    name: /answer for question 1$/i,
   });
 
   await waitFor(() => {

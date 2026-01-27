@@ -25,26 +25,22 @@ test('shows feedback icon based on answer', async () => {
   expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
   expect(screen.queryByText(/nice job/i)).not.toBeInTheDocument();
   expect(
-    screen.queryByTestId('SentimentSatisfiedAltIcon')
+    screen.queryByTestId('feedback-icon-correct')
   ).not.toBeInTheDocument();
   expect(
-    screen.queryByTestId('SentimentDissatisfiedIcon')
+    screen.queryByTestId('feedback-icon-incorrect')
   ).not.toBeInTheDocument();
 
   await user.type(input, '5');
-  expect(
-    screen.getByTestId('SentimentDissatisfiedIcon')
-  ).toBeInTheDocument();
+  expect(screen.getByTestId('feedback-icon-incorrect')).toBeInTheDocument();
   expect(screen.getByText(/try again/i)).toBeInTheDocument();
 
   await user.clear(input);
   expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
   await user.type(input, '1');
-  expect(
-    screen.getByTestId('SentimentSatisfiedAltIcon')
-  ).toBeInTheDocument();
+  expect(screen.getByTestId('feedback-icon-correct')).toBeInTheDocument();
   expect(screen.getByText(/nice job/i)).toBeInTheDocument();
   expect(
-    screen.queryByTestId('SentimentDissatisfiedIcon')
+    screen.queryByTestId('feedback-icon-incorrect')
   ).not.toBeInTheDocument();
 });
