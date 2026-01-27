@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import App from './App';
 
 test('renders app chrome and equations', () => {
@@ -15,4 +16,19 @@ test('renders app chrome and equations', () => {
   expect(screen.getByText(/Today's goal/i)).toBeInTheDocument();
   expect(screen.getByText('Subtraction')).toBeInTheDocument();
   expect(screen.getAllByRole('textbox')).toHaveLength(10);
+});
+
+test('start practice moves focus to first question', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+  const firstInput = screen.getByRole('textbox', {
+    name: /answer for question 1/i,
+  });
+
+  await waitFor(() => {
+    expect(firstInput).toHaveFocus();
+  });
 });

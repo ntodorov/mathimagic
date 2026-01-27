@@ -1,3 +1,4 @@
+import * as React from 'react';
 import './App.css';
 import EquationList from './EquationList';
 import ButtonAppBar from './ButtonAppBar';
@@ -10,7 +11,17 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+const PRACTICE_SECTION_ID = 'practice-section';
+
 function App() {
+  const [practiceFocusKey, setPracticeFocusKey] = React.useState(0);
+
+  const handleStartPractice = React.useCallback(() => {
+    setPracticeFocusKey((prev) => prev + 1);
+    const practiceSection = document.getElementById(PRACTICE_SECTION_ID);
+    practiceSection?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   return (
     <div className="App">
       <ButtonAppBar />
@@ -30,7 +41,12 @@ function App() {
                 <Chip label="5-minute sessions" size="small" />
                 <Chip label="Phone-first design" size="small" />
               </Box>
-              <Button variant="contained" size="large">
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleStartPractice}
+                aria-controls={PRACTICE_SECTION_ID}
+              >
                 Start Practice
               </Button>
             </Stack>
@@ -53,7 +69,10 @@ function App() {
               </Typography>
             </Stack>
           </Paper>
-          <EquationList />
+          <EquationList
+            sectionId={PRACTICE_SECTION_ID}
+            focusSignal={practiceFocusKey}
+          />
         </Stack>
       </Container>
     </div>
