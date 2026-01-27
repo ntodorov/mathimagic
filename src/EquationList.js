@@ -48,9 +48,10 @@ function minus() {
   return operation;
 }
 
-const EquationList = (props) => {
+const EquationList = ({ sectionId, focusSignal }) => {
   const [operation, setOperation] = React.useState(() => minus());
   const [answers, setAnswers] = React.useState({});
+  const firstInputRef = React.useRef(null);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({
@@ -64,14 +65,23 @@ const EquationList = (props) => {
     setAnswers({});
   }, []);
 
+  React.useEffect(() => {
+    if (!focusSignal) {
+      return;
+    }
+
+    firstInputRef.current?.focus({ preventScroll: true });
+  }, [focusSignal]);
+
   const rows = (equations) => {
     const list = [];
-    for (let eq of equations)
+    for (let [index, eq] of equations.entries())
       list.push(
         <Equation
           eq={eq}
           key={eq.id.toString()}
           onAnswerChange={handleAnswerChange}
+          inputRef={index === 0 ? firstInputRef : undefined}
         />
       );
     return list;
@@ -84,7 +94,7 @@ const EquationList = (props) => {
     totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
 
   return (
-    <Paper className="practiceCard" variant="outlined">
+    <Paper id={sectionId} className="practiceCard" variant="outlined">
       <Stack spacing={2}>
         <Box>
           <Typography variant="overline" color="text.secondary">

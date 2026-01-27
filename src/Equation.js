@@ -19,7 +19,7 @@ const emoji = (error) => (
 );
 
 function Equation(props) {
-  const { eq, onAnswerChange } = props;
+  const { eq, onAnswerChange, inputRef } = props;
   const [answer, setAnswer] = React.useState('');
   const [error, setError] = React.useState(false);
 
@@ -81,6 +81,7 @@ function Equation(props) {
               size="small"
               type="tel"
               onChange={handleChange}
+              inputRef={inputRef}
               autoComplete="off"
               inputProps={{
                 inputMode: 'numeric',
