@@ -12,6 +12,7 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 - Phone/tablet-first layout with large tap targets
 - Fast loading and simple UI
 - Friendly feedback after each answer
+- Start Practice jumps to the session and focuses the first question
 - Session progress, streaks, and daily goal
 
 ## Tech Stack
