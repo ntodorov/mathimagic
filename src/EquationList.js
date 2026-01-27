@@ -1,12 +1,5 @@
 import React from 'react';
 import Equation from './Equation';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import LinearProgress from '@mui/material/LinearProgress';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -73,19 +66,15 @@ const EquationList = ({ sectionId, focusSignal }) => {
     firstInputRef.current?.focus({ preventScroll: true });
   }, [focusSignal]);
 
-  const rows = (equations) => {
-    const list = [];
-    for (let [index, eq] of equations.entries())
-      list.push(
-        <Equation
-          eq={eq}
-          key={eq.id.toString()}
-          onAnswerChange={handleAnswerChange}
-          inputRef={index === 0 ? firstInputRef : undefined}
-        />
-      );
-    return list;
-  };
+  const rows = (equations) =>
+    equations.map((eq, index) => (
+      <Equation
+        eq={eq}
+        key={eq.id.toString()}
+        onAnswerChange={handleAnswerChange}
+        inputRef={index === 0 ? firstInputRef : undefined}
+      />
+    ));
 
   const totalQuestions = operation.equations.length;
   const answerEntries = Object.values(answers);
@@ -94,48 +83,63 @@ const EquationList = ({ sectionId, focusSignal }) => {
     totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
 
   return (
-    <Paper id={sectionId} className="practiceCard" variant="outlined">
-      <Stack spacing={2}>
-        <Box>
-          <Typography variant="overline" color="text.secondary">
+    <section
+      id={sectionId}
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Practice
-          </Typography>
-          <Typography variant="h6">{operation.name}</Typography>
-        </Box>
-        <Stack spacing={1.5}>{rows(operation.equations)}</Stack>
-        <Divider />
-        <Stack spacing={1.5}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            sx={{ justifyContent: 'space-between' }}
-          >
-            <Box>
-              <Typography variant="caption" color="text.secondary">
+          </p>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {operation.name}
+          </h2>
+        </div>
+        <div className="space-y-3">{rows(operation.equations)}</div>
+        <hr className="border-slate-200" />
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Streak
-              </Typography>
-              <Typography variant="h6">{correctCount}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary">
+              </p>
+              <p className="text-lg font-semibold text-slate-900">
+                {correctCount}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Daily goal
-              </Typography>
-              <Typography variant="h6">
+              </p>
+              <p className="text-lg font-semibold text-slate-900">
                 {correctCount}/{totalQuestions}
-              </Typography>
-            </Box>
-          </Stack>
-          <LinearProgress
+              </p>
+            </div>
+          </div>
+          <div
+            className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
             aria-label="Session progress"
-            variant="determinate"
-            value={progressValue}
-          />
-          <Button variant="text" size="small" onClick={handleReset}>
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progressValue)}
+          >
+            <div
+              className="h-full rounded-full bg-indigo-500 transition-all"
+              style={{ width: `${progressValue}%` }}
+            />
+          </div>
+          <button
+            type="button"
+            className="text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            onClick={handleReset}
+          >
             Start a new set
-          </Button>
-        </Stack>
-      </Stack>
-    </Paper>
+          </button>
+        </div>
+      </div>
+    </section>
   );
 };
 

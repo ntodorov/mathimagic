@@ -4,11 +4,6 @@
   "homepage": "https://ntodorov.github.io/mathimagic",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@fontsource/roboto": "^5.2.9",
-    "@mui/icons-material": "^7.3.7",
-    "@mui/material": "^7.3.7",
     "classnames": "^2.5.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -46,6 +41,9 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "gh-pages": "^6.3.0"
+    "autoprefixer": "^10.4.23",
+    "gh-pages": "^6.3.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
   }
 }
