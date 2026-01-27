@@ -9,4 +9,4 @@ Follow this rule when updating task status:
 3. Add session progress footer (streak, daily goal, quick reset). - done
 4. Update tests to cover new UI and behavior. - done
 5. Performance pass: remove unused CSS and ensure fast load. - done
-6. Swap MUI for Tailwind styling and update tests/docs. - in progress
+6. Swap MUI for Tailwind styling and update tests/docs. - done
