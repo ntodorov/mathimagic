@@ -4,7 +4,7 @@ import Equation from './Equation';
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function minus() {
@@ -14,8 +14,8 @@ function minus() {
 
   while (operation.equations.length < 10) {
     const a = {};
-    a.x = getRandomInt(2, 20); // Start from 2 to avoid zero result
-    a.y = getRandomInt(1, a.x); // Ensure second operand is less than or equal to first
+    a.x = getRandomInt(2, 20);
+    a.y = getRandomInt(1, a.x);
     a.operation = '-';
     a.solution = a.x - a.y;
     a.id = operation.equations.length + 1;
@@ -24,9 +24,10 @@ function minus() {
   return operation;
 }
 
-const EquationList = ({ sectionId, focusSignal }) => {
+const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, onNewSession }) => {
   const [operation, setOperation] = React.useState(() => minus());
   const [answers, setAnswers] = React.useState({});
+  const [sessionCompleted, setSessionCompleted] = React.useState(false);
   const firstInputRef = React.useRef(null);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
@@ -37,17 +38,52 @@ const EquationList = ({ sectionId, focusSignal }) => {
   }, []);
 
   const handleReset = React.useCallback(() => {
-    setOperation(minus());
-    setAnswers({});
-  }, []);
+    if (onNewSession) {
+      onNewSession();
+    } else {
+      setOperation(minus());
+      setAnswers({});
+      setSessionCompleted(false);
+    }
+  }, [onNewSession]);
 
   React.useEffect(() => {
     if (!focusSignal) {
       return;
     }
-
-    firstInputRef.current?.focus({ preventScroll: true });
+    setOperation(minus());
+    setAnswers({});
+    setSessionCompleted(false);
+    setTimeout(() => {
+      firstInputRef.current?.focus({ preventScroll: true });
+    }, 100);
   }, [focusSignal]);
+
+  const totalQuestions = operation.equations.length;
+  const answerEntries = Object.values(answers);
+  const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
+  const attemptedCount = answerEntries.filter((entry) => entry.hasAnswer).length;
+  const progressValue = totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
+
+  // Call onProgress when progress changes
+  React.useEffect(() => {
+    if (onProgress) {
+      onProgress(correctCount, totalQuestions);
+    }
+  }, [correctCount, totalQuestions, onProgress]);
+
+  // Check for session completion
+  React.useEffect(() => {
+    if (attemptedCount === totalQuestions && attemptedCount > 0 && !sessionCompleted) {
+      setSessionCompleted(true);
+      if (onSessionComplete) {
+        onSessionComplete({
+          correct: correctCount,
+          attempted: totalQuestions,
+        });
+      }
+    }
+  }, [attemptedCount, totalQuestions, correctCount, sessionCompleted, onSessionComplete]);
 
   const rows = (equations) =>
     equations.map((eq, index) => (
@@ -59,49 +95,58 @@ const EquationList = ({ sectionId, focusSignal }) => {
       />
     ));
 
-  const totalQuestions = operation.equations.length;
-  const answerEntries = Object.values(answers);
-  const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
-  const progressValue =
-    totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
-
   return (
     <section
       id={sectionId}
-      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-3xl border-2 border-blue-200 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 p-4 shadow-lg"
     >
       <div className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Practice
-          </p>
-          <h2 className="text-lg font-semibold text-slate-900">
-            {operation.name}
-          </h2>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🧮</span>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+              Practice Time!
+            </p>
+            <h2 className="text-lg font-bold text-indigo-700">
+              {operation.name} Challenge
+            </h2>
+          </div>
         </div>
+        
         <div className="space-y-3">{rows(operation.equations)}</div>
-        <hr className="border-slate-200" />
+        
+        <hr className="border-indigo-200" />
+        
         <div className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Streak
-              </p>
-              <p className="text-lg font-semibold text-slate-900">
-                {correctCount}
-              </p>
+          {/* Session Stats */}
+          <div className="flex items-center justify-between rounded-2xl bg-white/60 p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⭐</span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-amber-600">
+                  Stars Earned
+                </p>
+                <p className="text-xl font-bold text-amber-600">
+                  {correctCount}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Daily goal
-              </p>
-              <p className="text-lg font-semibold text-slate-900">
-                {correctCount}/{totalQuestions}
-              </p>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🎯</span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-purple-600">
+                  Progress
+                </p>
+                <p className="text-xl font-bold text-purple-600">
+                  {correctCount}/{totalQuestions}
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* Progress Bar */}
           <div
-            className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+            className="h-4 w-full overflow-hidden rounded-full bg-purple-100"
             role="progressbar"
             aria-label="Session progress"
             aria-valuemin={0}
@@ -109,16 +154,35 @@ const EquationList = ({ sectionId, focusSignal }) => {
             aria-valuenow={Math.round(progressValue)}
           >
             <div
-              className="h-full rounded-full bg-indigo-500 transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 transition-all duration-300"
               style={{ width: `${progressValue}%` }}
             />
           </div>
+
+          {/* Completion Message */}
+          {sessionCompleted && (
+            <div className="rounded-2xl bg-gradient-to-r from-green-100 to-teal-100 p-4 text-center border-2 border-green-300">
+              <div className="text-4xl mb-2">🎉🌟🎉</div>
+              <p className="text-lg font-bold text-green-700">
+                Amazing job! You got {correctCount} out of {totalQuestions}!
+              </p>
+              <p className="text-sm text-green-600">
+                {correctCount === totalQuestions 
+                  ? "PERFECT SCORE! You're a math superstar! ⭐" 
+                  : correctCount >= totalQuestions * 0.7 
+                    ? "Great work! Keep practicing! 💪" 
+                    : "Good effort! Practice makes perfect! 🌈"}
+              </p>
+            </div>
+          )}
+
           <button
             type="button"
-            className="text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-400 to-teal-400 px-4 py-3 text-base font-bold text-white shadow-md transition transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-200"
             onClick={handleReset}
           >
-            Start a new set
+            <span className="text-xl">🔄</span>
+            Try New Problems!
           </button>
         </div>
       </div>

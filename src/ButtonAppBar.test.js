@@ -1,10 +1,24 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ButtonAppBar from './ButtonAppBar';
 
-test('renders app bar controls', () => {
-  render(<ButtonAppBar />);
+test('renders app bar with username', () => {
+  const mockRegenerate = jest.fn();
+  render(
+    <ButtonAppBar username="HappyPanda123" onRegenerateUsername={mockRegenerate} />
+  );
 
   expect(screen.getByText('Mathimagic')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /menu/i })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+  expect(screen.getByText('HappyPanda123')).toBeInTheDocument();
+});
+
+test('clicking username button calls regenerate function', async () => {
+  const user = userEvent.setup();
+  const mockRegenerate = jest.fn();
+  render(
+    <ButtonAppBar username="HappyPanda123" onRegenerateUsername={mockRegenerate} />
+  );
+
+  await user.click(screen.getByRole('button', { name: /HappyPanda123/i }));
+  expect(mockRegenerate).toHaveBeenCalledTimes(1);
 });
