@@ -24,8 +24,21 @@ function minus() {
   return operation;
 }
 
-const EquationList = ({ sectionId, focusSignal }) => {
-  const [operation, setOperation] = React.useState(() => minus());
+const createEmptyOperation = () => ({
+  name: 'Subtraction',
+  equations: [],
+});
+
+const EquationList = ({
+  sectionId,
+  focusSignal = 0,
+  startSignal = 0,
+  isActive = true,
+  playerName = 'friend',
+}) => {
+  const [operation, setOperation] = React.useState(() =>
+    isActive ? minus() : createEmptyOperation()
+  );
   const [answers, setAnswers] = React.useState({});
   const firstInputRef = React.useRef(null);
 
@@ -37,17 +50,35 @@ const EquationList = ({ sectionId, focusSignal }) => {
   }, []);
 
   const handleReset = React.useCallback(() => {
+    if (!isActive) {
+      return;
+    }
     setOperation(minus());
     setAnswers({});
-  }, []);
+    firstInputRef.current?.focus({ preventScroll: true });
+  }, [isActive]);
 
   React.useEffect(() => {
-    if (!focusSignal) {
+    if (!isActive) {
+      setOperation(createEmptyOperation());
+      setAnswers({});
+      return;
+    }
+    setOperation(minus());
+    setAnswers({});
+  }, [isActive, startSignal]);
+
+  React.useEffect(() => {
+    if (!focusSignal || !isActive) {
+      return;
+    }
+
+    if (operation.equations.length === 0) {
       return;
     }
 
     firstInputRef.current?.focus({ preventScroll: true });
-  }, [focusSignal]);
+  }, [focusSignal, isActive, operation.equations.length]);
 
   const rows = (equations) =>
     equations.map((eq, index) => (
@@ -64,63 +95,91 @@ const EquationList = ({ sectionId, focusSignal }) => {
   const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
   const progressValue =
     totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
+  const trimmedName = playerName ? playerName.trim() : '';
 
   return (
     <section
       id={sectionId}
-      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-3xl border border-[#ffd9a6] bg-white/80 p-5 shadow-[0_18px_50px_-40px_rgba(255,140,187,0.6)]"
     >
       <div className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Practice
-          </p>
-          <h2 className="text-lg font-semibold text-slate-900">
-            {operation.name}
-          </h2>
-        </div>
-        <div className="space-y-3">{rows(operation.equations)}</div>
-        <hr className="border-slate-200" />
-        <div className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Streak
-              </p>
-              <p className="text-lg font-semibold text-slate-900">
-                {correctCount}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Daily goal
-              </p>
-              <p className="text-lg font-semibold text-slate-900">
-                {correctCount}/{totalQuestions}
-              </p>
-            </div>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {isActive ? 'Session' : 'Warm-up'}
+            </p>
+            <h2 className="text-lg font-semibold text-slate-900">
+              {operation.name}
+            </h2>
           </div>
-          <div
-            className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
-            role="progressbar"
-            aria-label="Session progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progressValue)}
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              isActive
+                ? 'bg-[#ffe0f1] text-[#c24180]'
+                : 'bg-slate-100 text-slate-600'
+            }`}
           >
-            <div
-              className="h-full rounded-full bg-indigo-500 transition-all"
-              style={{ width: `${progressValue}%` }}
-            />
-          </div>
-          <button
-            type="button"
-            className="text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            onClick={handleReset}
-          >
-            Start a new set
-          </button>
+            {isActive ? 'Session on' : 'Waiting'}
+          </span>
         </div>
+        {!isActive ? (
+          <div className="space-y-2 rounded-2xl border border-dashed border-[#ffd5a8] bg-[#fffaf0] p-4 text-sm text-slate-700">
+            <p className="text-base font-semibold text-slate-800">
+              No questions yet.
+            </p>
+            <p className="text-sm text-slate-600">
+              Tap &quot;Start session&quot; to get 10 subtraction puzzles
+              {trimmedName ? `, ${trimmedName}.` : '.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">{rows(operation.equations)}</div>
+        )}
+        {isActive ? (
+          <>
+            <hr className="border-slate-200" />
+            <div className="space-y-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Power streak
+                  </p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {correctCount}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Session goal
+                  </p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {correctCount}/{totalQuestions}
+                  </p>
+                </div>
+              </div>
+              <div
+                className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+                role="progressbar"
+                aria-label="Session progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(progressValue)}
+              >
+                <div
+                  className="h-full rounded-full bg-[#ff8ac4] transition-all"
+                  style={{ width: `${progressValue}%` }}
+                />
+              </div>
+              <button
+                type="button"
+                className="text-sm font-semibold text-[#ff6ea8] transition hover:text-[#ff4a98] focus:outline-none focus:ring-2 focus:ring-[#ffd1e8]"
+                onClick={handleReset}
+              >
+                Mix up another set
+              </button>
+            </div>
+          </>
+        ) : null}
       </div>
     </section>
   );

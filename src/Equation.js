@@ -23,6 +23,11 @@ function Equation(props) {
   const [answer, setAnswer] = React.useState('');
   const [error, setError] = React.useState(false);
 
+  React.useEffect(() => {
+    setAnswer('');
+    setError(false);
+  }, [eq]);
+
   const handleChange = (e) => {
     const nextValue = e.target.value;
     const trimmedValue = nextValue.trim();
@@ -53,9 +58,9 @@ function Equation(props) {
   const feedbackText = hasAnswer ? (error ? 'Try again' : 'Nice job!') : '';
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <div className="w-full rounded-2xl border border-[#ffe6c7] bg-white/90 px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-slate-100 px-2 text-xs font-semibold text-slate-700">
+        <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-[#fff0d9] px-2 text-xs font-semibold text-[#b45309]">
           {eq.id}
         </span>
       </div>
@@ -65,10 +70,10 @@ function Equation(props) {
         </span>
         <input
           value={answer}
-          className={`w-20 rounded-lg border px-3 py-2 text-center text-lg font-semibold text-slate-900 focus:outline-none focus:ring-2 ${
+          className={`w-20 rounded-xl border bg-white px-3 py-2 text-center text-lg font-semibold text-slate-900 focus:outline-none focus:ring-2 ${
             hasAnswer && error
               ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-200'
-              : 'border-slate-300 focus:border-indigo-400 focus:ring-indigo-200'
+              : 'border-[#ffd6eb] focus:border-[#ff9ecd] focus:ring-[#ffd6eb]'
           }`}
           type="tel"
           onChange={handleChange}

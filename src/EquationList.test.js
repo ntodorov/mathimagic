@@ -26,10 +26,10 @@ describe('EquationList', () => {
 
     render(<EquationList />);
 
-    expect(screen.getByText(/streak/i)).toBeInTheDocument();
-    expect(screen.getByText(/daily goal/i)).toBeInTheDocument();
+    expect(screen.getByText(/power streak/i)).toBeInTheDocument();
+    expect(screen.getByText(/session goal/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /start a new set/i })
+      screen.getByRole('button', { name: /mix up another set/i })
     ).toBeInTheDocument();
 
     const inputs = screen.getAllByRole('textbox');
