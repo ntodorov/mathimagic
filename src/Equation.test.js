@@ -23,7 +23,7 @@ test('shows feedback icon based on answer', async () => {
 
   const input = screen.getByRole('textbox');
   expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
-  expect(screen.queryByText(/nice job/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/awesome/i)).not.toBeInTheDocument();
   expect(
     screen.queryByTestId('feedback-icon-correct')
   ).not.toBeInTheDocument();
@@ -39,7 +39,7 @@ test('shows feedback icon based on answer', async () => {
   expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
   await user.type(input, '1');
   expect(screen.getByTestId('feedback-icon-correct')).toBeInTheDocument();
-  expect(screen.getByText(/nice job/i)).toBeInTheDocument();
+  expect(screen.getByText(/awesome/i)).toBeInTheDocument();
   expect(
     screen.queryByTestId('feedback-icon-incorrect')
   ).not.toBeInTheDocument();

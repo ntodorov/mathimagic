@@ -16,20 +16,20 @@ describe('EquationList', () => {
   test('renders 10 subtraction equations', () => {
     render(<EquationList />);
 
-    expect(screen.getByText('Subtraction')).toBeInTheDocument();
+    expect(screen.getByText(/Subtraction Challenge/i)).toBeInTheDocument();
     expect(screen.getAllByRole('textbox')).toHaveLength(10);
     expect(screen.getAllByText(/2\s-\s1\s=/)).toHaveLength(10);
   });
 
-  test('updates session footer as answers are correct', async () => {
+  test('updates session stats as answers are correct', async () => {
     const user = userEvent.setup();
 
     render(<EquationList />);
 
-    expect(screen.getByText(/streak/i)).toBeInTheDocument();
-    expect(screen.getByText(/daily goal/i)).toBeInTheDocument();
+    expect(screen.getByText(/Stars Earned/i)).toBeInTheDocument();
+    expect(screen.getByText(/Progress/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /start a new set/i })
+      screen.getByRole('button', { name: /Try New Problems/i })
     ).toBeInTheDocument();
 
     const inputs = screen.getAllByRole('textbox');
