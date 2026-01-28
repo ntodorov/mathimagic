@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 const STORAGE_KEY = 'mathimagic_username';
 const RESULTS_KEY = 'mathimagic_results';
