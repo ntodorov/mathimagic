@@ -10,3 +10,6 @@ Follow this rule when updating task status:
 4. Update tests to cover new UI and behavior. - done
 5. Performance pass: remove unused CSS and ensure fast load. - done
 6. Swap MUI for Tailwind styling and update tests/docs. - done
+7. Add addition practice mode with operation selector. - in progress
+8. Extend tests for addition practice. - in progress
+9. Update docs for addition support. - in progress

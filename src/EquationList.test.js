@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EquationList from './EquationList';
 
@@ -13,12 +13,25 @@ describe('EquationList', () => {
     randomSpy.mockRestore();
   });
 
-  test('renders 10 subtraction equations', () => {
+  test('renders 10 subtraction equations by default', () => {
     render(<EquationList />);
 
     expect(screen.getByText(/Subtraction Challenge/i)).toBeInTheDocument();
     expect(screen.getAllByRole('textbox')).toHaveLength(10);
     expect(screen.getAllByText(/2\s-\s1\s=/)).toHaveLength(10);
+  });
+
+  test('switches to addition equations when selected', async () => {
+    const user = userEvent.setup();
+
+    render(<EquationList />);
+
+    await user.click(screen.getByRole('button', { name: /addition/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Addition Challenge/i)).toBeInTheDocument();
+    });
+    expect(screen.getAllByText(/1\s\+\s1\s=/)).toHaveLength(10);
   });
 
   test('updates session stats as answers are correct', async () => {

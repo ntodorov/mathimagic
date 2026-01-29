@@ -146,7 +146,7 @@ function App() {
                   Click Start Practice to begin your math adventure!
                 </p>
                 <p className="text-sm text-green-600">
-                  Solve fun subtraction problems and collect stars!
+                  Solve fun addition and subtraction problems and collect stars!
                 </p>
               </div>
             </section>
