@@ -13,3 +13,6 @@ Follow this rule when updating task status:
 7. Add addition practice mode with operation selector. - done
 8. Extend tests for addition practice. - done
 9. Update docs for addition support. - done
+10. Add multiplication practice mode with times table support. - done
+11. Extend tests for multiplication practice. - done
+12. Update operation selector to show all three modes (addition, subtraction, multiplication). - done

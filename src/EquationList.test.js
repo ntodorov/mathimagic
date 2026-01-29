@@ -34,6 +34,27 @@ describe('EquationList', () => {
     expect(screen.getAllByText(/1\s\+\s1\s=/)).toHaveLength(10);
   });
 
+  test('switches to multiplication equations when selected', async () => {
+    const user = userEvent.setup();
+
+    render(<EquationList />);
+
+    await user.click(screen.getByRole('button', { name: /multiply/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Multiply Challenge/i)).toBeInTheDocument();
+    });
+    expect(screen.getAllByText(/1\s×\s1\s=/)).toHaveLength(10);
+  });
+
+  test('renders all three operation buttons', () => {
+    render(<EquationList />);
+
+    expect(screen.getByRole('button', { name: /addition/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /subtraction/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /multiply/i })).toBeInTheDocument();
+  });
+
   test('updates session stats as answers are correct', async () => {
     const user = userEvent.setup();
 
