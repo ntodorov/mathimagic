@@ -1,18 +1,12 @@
 import React from 'react';
 import Equation from './Equation';
+import { DEFAULT_OPERATION, getOperationOption } from './operations';
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 }
-
-const DEFAULT_OPERATION = 'subtraction';
-const OPERATION_OPTIONS = [
-  { id: 'addition', label: 'Addition', symbol: '+' },
-  { id: 'subtraction', label: 'Subtraction', symbol: '−' },
-  { id: 'multiplication', label: 'Multiply', symbol: '×' },
-];
 
 function createSubtractionOperation() {
   const operation = {
@@ -89,36 +83,29 @@ function buildOperation(type) {
   }
 }
 
-const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, onNewSession }) => {
-  const [operationType, setOperationType] = React.useState(DEFAULT_OPERATION);
-  const [operation, setOperation] = React.useState(() => buildOperation(DEFAULT_OPERATION));
+const EquationList = ({
+  sectionId,
+  focusSignal,
+  onProgress,
+  onSessionComplete,
+  onNewSession,
+  onEndSession,
+  operationType = DEFAULT_OPERATION,
+}) => {
+  const [operation, setOperation] = React.useState(() => buildOperation(operationType));
   const [answers, setAnswers] = React.useState({});
   const [sessionCompleted, setSessionCompleted] = React.useState(false);
   const firstInputRef = React.useRef(null);
-  const operationTypeRef = React.useRef(operationType);
-
-  React.useEffect(() => {
-    operationTypeRef.current = operationType;
-  }, [operationType]);
 
   const resetSession = React.useCallback((nextOperationType) => {
-    const resolvedType = nextOperationType ?? operationTypeRef.current;
+    const resolvedType = nextOperationType ?? operationType;
     setOperation(buildOperation(resolvedType));
     setAnswers({});
     setSessionCompleted(false);
     setTimeout(() => {
       firstInputRef.current?.focus({ preventScroll: true });
     }, 100);
-  }, []);
-
-  const handleOperationChange = React.useCallback((nextType) => {
-    if (nextType === operationTypeRef.current) {
-      return;
-    }
-    operationTypeRef.current = nextType;
-    setOperationType(nextType);
-    resetSession(nextType);
-  }, [resetSession]);
+  }, [operationType]);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({
@@ -142,13 +129,17 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
     resetSession();
   }, [focusSignal, resetSession]);
 
+  React.useEffect(() => {
+    resetSession(operationType);
+  }, [operationType, resetSession]);
+
   const totalQuestions = operation.equations.length;
   const answerEntries = Object.values(answers);
   const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
   const attemptedCount = answerEntries.filter((entry) => entry.hasAnswer).length;
   const progressValue = totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
 
-  const activeOption = OPERATION_OPTIONS.find((option) => option.id === operationType) ?? OPERATION_OPTIONS[0];
+  const activeOption = getOperationOption(operationType);
 
   // Call onProgress when progress changes
   React.useEffect(() => {
@@ -169,6 +160,19 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
       }
     }
   }, [attemptedCount, totalQuestions, correctCount, sessionCompleted, onSessionComplete]);
+
+  const handleEndSession = React.useCallback(() => {
+    if (!onEndSession) {
+      return;
+    }
+
+    onEndSession({
+      correct: correctCount,
+      attempted: attemptedCount,
+      total: totalQuestions,
+      completed: attemptedCount === totalQuestions && totalQuestions > 0,
+    });
+  }, [onEndSession, correctCount, attemptedCount, totalQuestions]);
 
   const rows = (equations) =>
     equations.map((eq, index) => (
@@ -195,33 +199,6 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
             <h2 className="text-lg font-bold text-indigo-700">
               {activeOption.label} Challenge
             </h2>
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-white/70 p-3">
-          <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
-            Choose a Challenge
-          </p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {OPERATION_OPTIONS.map((option) => {
-              const isActive = option.id === operationType;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => handleOperationChange(option.id)}
-                  aria-pressed={isActive}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-bold transition ${
-                    isActive
-                      ? 'border-indigo-400 bg-white text-indigo-700 shadow-sm'
-                      : 'border-indigo-200 bg-white/60 text-indigo-500 hover:border-indigo-300'
-                  }`}
-                >
-                  <span className="text-base">{option.symbol}</span>
-                  <span>{option.label}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
 
@@ -288,14 +265,24 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
             </div>
           )}
 
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-400 to-teal-400 px-4 py-3 text-base font-bold text-white shadow-md transition transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-200"
-            onClick={handleReset}
-          >
-            <span className="text-xl">🔄</span>
-            Try New Problems!
-          </button>
+          <div className="space-y-2">
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 rounded-full border-2 border-rose-200 bg-white/80 px-4 py-3 text-base font-bold text-rose-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-200"
+              onClick={handleEndSession}
+            >
+              <span className="text-xl">🏁</span>
+              End Session
+            </button>
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-400 to-teal-400 px-4 py-3 text-base font-bold text-white shadow-md transition transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-200"
+              onClick={handleReset}
+            >
+              <span className="text-xl">🔄</span>
+              Try New Problems!
+            </button>
+          </div>
         </div>
       </div>
     </section>
