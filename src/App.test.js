@@ -58,3 +58,24 @@ test('start practice shows equations and moves focus to first question', async (
     expect(firstInput).toHaveFocus();
   });
 });
+
+test('locks challenge selection during a session', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  expect(screen.getByText(/Choose a Challenge/i)).toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Challenge Locked/i)).toBeInTheDocument();
+  });
+
+  expect(screen.queryByText(/Choose a Challenge/i)).not.toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: /end session/i }));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Choose a Challenge/i)).toBeInTheDocument();
+  });
+});
