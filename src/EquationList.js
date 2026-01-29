@@ -10,7 +10,8 @@ function getRandomInt(min, max) {
 const DEFAULT_OPERATION = 'subtraction';
 const OPERATION_OPTIONS = [
   { id: 'addition', label: 'Addition', symbol: '+' },
-  { id: 'subtraction', label: 'Subtraction', symbol: '-' },
+  { id: 'subtraction', label: 'Subtraction', symbol: '−' },
+  { id: 'multiplication', label: 'Multiply', symbol: '×' },
 ];
 
 function createSubtractionOperation() {
@@ -55,10 +56,33 @@ function createAdditionOperation() {
   return operation;
 }
 
+function createMultiplicationOperation() {
+  const operation = {
+    name: 'Multiplication',
+    type: 'multiplication',
+    equations: [],
+  };
+
+  while (operation.equations.length < 10) {
+    const x = getRandomInt(1, 11);
+    const y = getRandomInt(1, 11);
+    operation.equations.push({
+      x,
+      y,
+      operation: '×',
+      solution: x * y,
+      id: operation.equations.length + 1,
+    });
+  }
+  return operation;
+}
+
 function buildOperation(type) {
   switch (type) {
     case 'addition':
       return createAdditionOperation();
+    case 'multiplication':
+      return createMultiplicationOperation();
     case 'subtraction':
     default:
       return createSubtractionOperation();
@@ -178,7 +202,7 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
           <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
             Choose a Challenge
           </p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="mt-2 grid grid-cols-3 gap-2">
             {OPERATION_OPTIONS.map((option) => {
               const isActive = option.id === operationType;
               return (
