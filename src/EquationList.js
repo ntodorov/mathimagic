@@ -7,28 +7,94 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function minus() {
-  const operation = {};
-  operation.name = 'Subtraction';
-  operation.equations = [];
+const DEFAULT_OPERATION = 'subtraction';
+const OPERATION_OPTIONS = [
+  { id: 'addition', label: 'Addition', symbol: '+' },
+  { id: 'subtraction', label: 'Subtraction', symbol: '-' },
+];
+
+function createSubtractionOperation() {
+  const operation = {
+    name: 'Subtraction',
+    type: 'subtraction',
+    equations: [],
+  };
 
   while (operation.equations.length < 10) {
-    const a = {};
-    a.x = getRandomInt(2, 20);
-    a.y = getRandomInt(1, a.x);
-    a.operation = '-';
-    a.solution = a.x - a.y;
-    a.id = operation.equations.length + 1;
-    operation.equations.push(a);
+    const x = getRandomInt(2, 20);
+    const y = getRandomInt(1, x);
+    operation.equations.push({
+      x,
+      y,
+      operation: '-',
+      solution: x - y,
+      id: operation.equations.length + 1,
+    });
   }
   return operation;
 }
 
+function createAdditionOperation() {
+  const operation = {
+    name: 'Addition',
+    type: 'addition',
+    equations: [],
+  };
+
+  while (operation.equations.length < 10) {
+    const x = getRandomInt(1, 11);
+    const y = getRandomInt(1, 11);
+    operation.equations.push({
+      x,
+      y,
+      operation: '+',
+      solution: x + y,
+      id: operation.equations.length + 1,
+    });
+  }
+  return operation;
+}
+
+function buildOperation(type) {
+  switch (type) {
+    case 'addition':
+      return createAdditionOperation();
+    case 'subtraction':
+    default:
+      return createSubtractionOperation();
+  }
+}
+
 const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, onNewSession }) => {
-  const [operation, setOperation] = React.useState(() => minus());
+  const [operationType, setOperationType] = React.useState(DEFAULT_OPERATION);
+  const [operation, setOperation] = React.useState(() => buildOperation(DEFAULT_OPERATION));
   const [answers, setAnswers] = React.useState({});
   const [sessionCompleted, setSessionCompleted] = React.useState(false);
   const firstInputRef = React.useRef(null);
+  const operationTypeRef = React.useRef(operationType);
+
+  React.useEffect(() => {
+    operationTypeRef.current = operationType;
+  }, [operationType]);
+
+  const resetSession = React.useCallback((nextOperationType) => {
+    const resolvedType = nextOperationType ?? operationTypeRef.current;
+    setOperation(buildOperation(resolvedType));
+    setAnswers({});
+    setSessionCompleted(false);
+    setTimeout(() => {
+      firstInputRef.current?.focus({ preventScroll: true });
+    }, 100);
+  }, []);
+
+  const handleOperationChange = React.useCallback((nextType) => {
+    if (nextType === operationTypeRef.current) {
+      return;
+    }
+    operationTypeRef.current = nextType;
+    setOperationType(nextType);
+    resetSession(nextType);
+  }, [resetSession]);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({
@@ -41,29 +107,24 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
     if (onNewSession) {
       onNewSession();
     } else {
-      setOperation(minus());
-      setAnswers({});
-      setSessionCompleted(false);
+      resetSession();
     }
-  }, [onNewSession]);
+  }, [onNewSession, resetSession]);
 
   React.useEffect(() => {
     if (!focusSignal) {
       return;
     }
-    setOperation(minus());
-    setAnswers({});
-    setSessionCompleted(false);
-    setTimeout(() => {
-      firstInputRef.current?.focus({ preventScroll: true });
-    }, 100);
-  }, [focusSignal]);
+    resetSession();
+  }, [focusSignal, resetSession]);
 
   const totalQuestions = operation.equations.length;
   const answerEntries = Object.values(answers);
   const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
   const attemptedCount = answerEntries.filter((entry) => entry.hasAnswer).length;
   const progressValue = totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
+
+  const activeOption = OPERATION_OPTIONS.find((option) => option.id === operationType) ?? OPERATION_OPTIONS[0];
 
   // Call onProgress when progress changes
   React.useEffect(() => {
@@ -108,11 +169,38 @@ const EquationList = ({ sectionId, focusSignal, onProgress, onSessionComplete, o
               Practice Time!
             </p>
             <h2 className="text-lg font-bold text-indigo-700">
-              {operation.name} Challenge
+              {activeOption.label} Challenge
             </h2>
           </div>
         </div>
-        
+
+        <div className="rounded-2xl bg-white/70 p-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+            Choose a Challenge
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {OPERATION_OPTIONS.map((option) => {
+              const isActive = option.id === operationType;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => handleOperationChange(option.id)}
+                  aria-pressed={isActive}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-bold transition ${
+                    isActive
+                      ? 'border-indigo-400 bg-white text-indigo-700 shadow-sm'
+                      : 'border-indigo-200 bg-white/60 text-indigo-500 hover:border-indigo-300'
+                  }`}
+                >
+                  <span className="text-base">{option.symbol}</span>
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="space-y-3">{rows(operation.equations)}</div>
         
         <hr className="border-indigo-200" />

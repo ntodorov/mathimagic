@@ -9,10 +9,11 @@
 ### Information Architecture
 - Home / Start Practice
   - Primary CTA: "Start Practice"
-  - Quick picks: Grade, Topic, Difficulty
+  - Quick picks: Grade, Operation (addition/subtraction), Difficulty
   - Continue last session if available
 - Practice
   - Single equation focus
+  - Operation selector for addition and subtraction
   - Immediate feedback
   - Streak + progress indicator
 - Review
