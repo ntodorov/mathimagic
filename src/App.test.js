@@ -109,6 +109,52 @@ test('records ended sessions in the history list', async () => {
   }
 });
 
+test('does not save sessions without answers', async () => {
+  const user = userEvent.setup();
+
+  render(<App />);
+
+  await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+  await user.click(screen.getByRole('button', { name: /end session/i }));
+
+  await waitFor(() => {
+    expect(screen.queryByText(/Subtraction Session/i)).not.toBeInTheDocument();
+  });
+
+  expect(screen.getByText(/No sessions yet/i)).toBeInTheDocument();
+});
+
+test('deletes a session from the history list', async () => {
+  const user = userEvent.setup();
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+  try {
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+    const firstInput = await screen.findByRole('textbox', {
+      name: /answer for question 1$/i,
+    });
+    await user.type(firstInput, '1');
+
+    await user.click(screen.getByRole('button', { name: /end session/i }));
+
+    expect(await screen.findByText(/Subtraction Session/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /delete/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Subtraction Session/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/No sessions yet/i)).toBeInTheDocument();
+  } finally {
+    randomSpy.mockRestore();
+  }
+});
+
 test('reviews past sessions in read-only mode', async () => {
   const user = userEvent.setup();
   const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);

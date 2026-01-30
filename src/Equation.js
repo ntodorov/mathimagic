@@ -8,6 +8,7 @@ function Equation(props) {
     value = '',
     onNext,
     enterKeyHint,
+    nextLabel = 'Next',
   } = props;
 
   const trimmedValue = value.trim();
@@ -81,7 +82,9 @@ function Equation(props) {
       </div>
       {hasAnswer && onNext && (
         <p className="mt-2 text-xs font-semibold text-slate-500">
-          Press Enter, swipe, or tap Next to continue.
+          {nextLabel === 'Done'
+            ? 'Press Enter, swipe, or tap Done to finish.'
+            : 'Press Enter, swipe, or tap Next to continue.'}
         </p>
       )}
     </div>

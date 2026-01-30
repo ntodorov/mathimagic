@@ -59,6 +59,13 @@ export function useUsername() {
   return { username, setUsername, regenerateUsername };
 }
 
+const calculateResults = (sessions) => sessions.reduce((totals, session) => {
+  totals.totalCorrect += Number(session.correct) || 0;
+  totals.totalAttempted += Number(session.attempted) || 0;
+  totals.sessionsCompleted += 1;
+  return totals;
+}, { totalCorrect: 0, totalAttempted: 0, sessionsCompleted: 0 });
+
 // Results storage
 export function useResults() {
   const [results, setResultsState] = useState(() => {
@@ -80,12 +87,17 @@ export function useResults() {
   });
 
   const recordSession = useCallback((sessionResults) => {
+    const attempted = Number(sessionResults.attempted) || 0;
+    if (attempted < 1) {
+      return;
+    }
+    const correct = Number(sessionResults.correct) || 0;
     const normalizedSession = {
       id: sessionResults.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       operationType: sessionResults.operationType ?? 'unknown',
-      correct: Number(sessionResults.correct) || 0,
-      attempted: Number(sessionResults.attempted) || 0,
-      total: Number(sessionResults.total) || Number(sessionResults.attempted) || 0,
+      correct,
+      attempted,
+      total: Number(sessionResults.total) || attempted || 0,
       completed: Boolean(sessionResults.completed),
       startedAt: sessionResults.startedAt ?? null,
       endedAt: sessionResults.endedAt ?? null,
@@ -94,8 +106,8 @@ export function useResults() {
 
     setResultsState((prev) => {
       const updated = {
-        totalCorrect: prev.totalCorrect + normalizedSession.correct,
-        totalAttempted: prev.totalAttempted + normalizedSession.attempted,
+        totalCorrect: prev.totalCorrect + correct,
+        totalAttempted: prev.totalAttempted + attempted,
         sessionsCompleted: prev.sessionsCompleted + 1,
       };
       try {
@@ -117,6 +129,28 @@ export function useResults() {
     });
   }, []);
 
+  const deleteSession = useCallback((sessionId) => {
+    if (!sessionId) {
+      return;
+    }
+
+    setSessionsState((prev) => {
+      const updatedSessions = prev.filter((session) => session.id !== sessionId);
+      if (updatedSessions.length === prev.length) {
+        return prev;
+      }
+      const updatedResults = calculateResults(updatedSessions);
+      setResultsState(updatedResults);
+      try {
+        localStorage.setItem(RESULTS_KEY, JSON.stringify(updatedResults));
+        localStorage.setItem(SESSIONS_KEY, JSON.stringify(updatedSessions));
+      } catch {
+        // localStorage might not be available
+      }
+      return updatedSessions;
+    });
+  }, []);
+
   const resetResults = useCallback(() => {
     const initial = { totalCorrect: 0, totalAttempted: 0, sessionsCompleted: 0 };
     try {
@@ -129,7 +163,7 @@ export function useResults() {
     setSessionsState([]);
   }, []);
 
-  return { results, sessions, recordSession, resetResults };
+  return { results, sessions, recordSession, deleteSession, resetResults };
 }
 
 export { generateRandomUsername };

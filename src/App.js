@@ -8,7 +8,7 @@ const PRACTICE_SECTION_ID = 'practice-section';
 
 function App() {
   const { username, regenerateUsername } = useUsername();
-  const { results, sessions, recordSession } = useResults();
+  const { results, sessions, recordSession, deleteSession } = useResults();
   const [selectedOperation, setSelectedOperation] = React.useState(DEFAULT_OPERATION);
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
@@ -50,17 +50,20 @@ function App() {
 
   const handleEndSession = React.useCallback((sessionResults) => {
     if (activeSession && !sessionFinalizedRef.current) {
-      recordSession({
-        id: activeSession.id,
-        operationType: activeSession.operationType,
-        startedAt: activeSession.startedAt,
-        endedAt: new Date().toISOString(),
-        correct: sessionResults.correct,
-        attempted: sessionResults.attempted,
-        total: sessionResults.total ?? sessionResults.attempted,
-        completed: sessionResults.completed,
-        questions: sessionResults.questions ?? [],
-      });
+      const attemptedCount = Number(sessionResults.attempted) || 0;
+      if (attemptedCount > 0) {
+        recordSession({
+          id: activeSession.id,
+          operationType: activeSession.operationType,
+          startedAt: activeSession.startedAt,
+          endedAt: new Date().toISOString(),
+          correct: sessionResults.correct,
+          attempted: attemptedCount,
+          total: sessionResults.total ?? attemptedCount,
+          completed: sessionResults.completed,
+          questions: sessionResults.questions ?? [],
+        });
+      }
       sessionFinalizedRef.current = true;
     }
     setActiveSession(null);
@@ -70,6 +73,11 @@ function App() {
   const handleReviewToggle = React.useCallback((sessionId) => {
     setReviewSessionId((prev) => (prev === sessionId ? null : sessionId));
   }, []);
+
+  const handleDeleteSession = React.useCallback((sessionId) => {
+    deleteSession(sessionId);
+    setReviewSessionId((prev) => (prev === sessionId ? null : prev));
+  }, [deleteSession]);
 
   const activeOption = getOperationOption(activeSession?.operationType ?? selectedOperation);
   const sessionProgressPercent = currentSessionStats.total > 0
@@ -252,21 +260,6 @@ function App() {
             />
           )}
 
-          {/* Encouragement when no session */}
-          {!sessionActive && (
-            <section className="rounded-3xl border-2 border-green-200 bg-gradient-to-br from-green-100 to-teal-100 p-6 shadow-md text-center">
-              <div className="space-y-3">
-                <div className="text-5xl">🌈</div>
-                <p className="text-lg font-bold text-green-700">
-                  Click Start Practice to begin your math adventure!
-                </p>
-                <p className="text-sm text-green-600">
-                  Solve fun addition, subtraction, and multiplication problems and collect stars!
-                </p>
-              </div>
-            </section>
-          )}
-
           <section className="rounded-3xl border-2 border-slate-200 bg-white/80 p-4 shadow-md">
             <div className="flex items-center gap-2">
               <span className="text-2xl">📚</span>
@@ -440,14 +433,23 @@ function App() {
                         <p className="text-xs text-slate-500">
                           Answered {attempted} of {total}
                         </p>
-                        <button
-                          type="button"
-                          onClick={() => handleReviewToggle(session.id)}
-                          aria-pressed={isReviewing}
-                          className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
-                        >
-                          {isReviewing ? 'Close Review' : 'Review Answers'}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleReviewToggle(session.id)}
+                            aria-pressed={isReviewing}
+                            className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
+                          >
+                            {isReviewing ? 'Close Review' : 'Review Answers'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSession(session.id)}
+                            className="rounded-full border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </li>
                   );
