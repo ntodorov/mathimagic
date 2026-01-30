@@ -16,5 +16,5 @@ Follow this rule when updating task status:
 10. Add multiplication practice mode with times table support. - done
 11. Extend tests for multiplication practice. - done
 12. Update operation selector to show all three modes (addition, subtraction, multiplication). - done
-13. Save full session equations and answers for review. - in progress
-14. Add read-only session review view and update docs. - in progress
+13. Save full session equations and answers for review. - done
+14. Add read-only session review view and update docs. - done
