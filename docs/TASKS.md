@@ -22,3 +22,6 @@ Follow this rule when updating task status:
 15. Switch practice flow to a single card with Next/Enter navigation. - done
 16. Delay correctness feedback until session end or review. - done
 17. Update tests for single-card navigation and deferred feedback. - done
+18. Keep answer input focused between equations on mobile. - done
+19. Add swipeable carousel navigation with previous/next controls. - done
+20. Document carousel navigation and focus behavior updates. - done
