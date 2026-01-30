@@ -231,9 +231,13 @@ const EquationList = ({
       focusInput();
       return;
     }
+    if (isLastQuestion) {
+      handleEndSession();
+      return;
+    }
     focusInput();
     setCurrentIndex((prev) => Math.min(prev + 1, totalQuestions - 1));
-  }, [currentEquation, currentAnswer, totalQuestions, focusInput]);
+  }, [currentEquation, currentAnswer, totalQuestions, focusInput, isLastQuestion, handleEndSession]);
 
   const handlePrev = React.useCallback(() => {
     focusInput();
@@ -301,8 +305,9 @@ const EquationList = ({
                 onAnswerChange={handleAnswerChange}
                 inputRef={activeInputRef}
                 value={currentAnswerValue}
-                onNext={isLastQuestion ? undefined : handleNext}
+                onNext={handleNext}
                 enterKeyHint={isLastQuestion ? 'done' : 'next'}
+                nextLabel={isLastQuestion ? 'Done' : 'Next'}
               />
             ) : (
               <p className="text-sm font-semibold text-slate-500">
@@ -333,10 +338,10 @@ const EquationList = ({
                 type="button"
                 className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
                 onClick={() => handleNext()}
-                disabled={!canAdvance || isLastQuestion}
+                disabled={!canAdvance}
               >
-                Next
-                <span aria-hidden="true">➡️</span>
+                {isLastQuestion ? 'Done' : 'Next'}
+                <span aria-hidden="true">{isLastQuestion ? '🏁' : '➡️'}</span>
               </button>
             </div>
           </div>
