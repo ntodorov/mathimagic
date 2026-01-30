@@ -21,6 +21,7 @@
   - Step-by-step explanation
   - Past session review (read-only)
   - Show each equation, kid answer, and correct answer
+  - Delete past sessions from history
 - Profile
   - Simple progress summary and badges
 
@@ -38,6 +39,7 @@
 - Review mode is clearly labeled and read-only.
 - Keep the numeric keypad open by preserving input focus on advance.
 - Support swipe left/right plus previous/next buttons for navigation.
+- Do not save sessions until at least one answer is provided.
 
 ### Delivery Requirements
 - A task is only complete when tests are green.
