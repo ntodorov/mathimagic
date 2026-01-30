@@ -89,6 +89,7 @@ export function useResults() {
       completed: Boolean(sessionResults.completed),
       startedAt: sessionResults.startedAt ?? null,
       endedAt: sessionResults.endedAt ?? null,
+      questions: Array.isArray(sessionResults.questions) ? sessionResults.questions : [],
     };
 
     setResultsState((prev) => {

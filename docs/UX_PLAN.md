@@ -9,16 +9,18 @@
 ### Information Architecture
 - Home / Start Practice
   - Primary CTA: "Start Practice"
-  - Quick picks: Grade, Operation (addition/subtraction), Difficulty
+  - Quick picks: Grade, Operation (addition/subtraction/multiplication), Difficulty
   - Continue last session if available
 - Practice
   - Single equation focus
-  - Operation selector for addition and subtraction
+  - Operation selector for addition, subtraction, and multiplication
   - Immediate feedback
   - Streak + progress indicator
 - Review
   - Mistakes list
   - Step-by-step explanation
+  - Past session review (read-only)
+  - Show each equation, kid answer, and correct answer
 - Profile
   - Simple progress summary and badges
 
@@ -33,6 +35,7 @@
 - Auto-advance on correct answers.
 - Friendly hints after mistakes.
 - Optional reduced motion.
+- Review mode is clearly labeled and read-only.
 
 ### Performance Targets
 - App shell under 100KB JS (gzipped).

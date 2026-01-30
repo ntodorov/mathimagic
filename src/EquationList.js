@@ -124,6 +124,27 @@ const EquationList = ({
     }));
   }, []);
 
+  const buildSessionQuestions = React.useCallback(() => (
+    operation.equations.map((eq) => {
+      const entry = answers[eq.id];
+      const rawValue = entry?.value ?? '';
+      const trimmedValue = String(rawValue).trim();
+      const hasAnswer = trimmedValue !== '';
+      const isCorrect = hasAnswer && Number(trimmedValue) === eq.solution;
+
+      return {
+        id: eq.id,
+        x: eq.x,
+        y: eq.y,
+        operation: eq.operation,
+        solution: eq.solution,
+        answer: trimmedValue,
+        hasAnswer,
+        isCorrect,
+      };
+    })
+  ), [operation.equations, answers]);
+
   const handleReset = React.useCallback(() => {
     if (onNewSession) {
       onNewSession();
@@ -163,26 +184,32 @@ const EquationList = ({
     if (attemptedCount === totalQuestions && attemptedCount > 0 && !sessionCompleted) {
       setSessionCompleted(true);
       if (onSessionComplete) {
+        const sessionQuestions = buildSessionQuestions();
         onSessionComplete({
           correct: correctCount,
           attempted: totalQuestions,
+          total: totalQuestions,
+          completed: true,
+          questions: sessionQuestions,
         });
       }
     }
-  }, [attemptedCount, totalQuestions, correctCount, sessionCompleted, onSessionComplete]);
+  }, [attemptedCount, totalQuestions, correctCount, sessionCompleted, onSessionComplete, buildSessionQuestions]);
 
   const handleEndSession = React.useCallback(() => {
     if (!onEndSession) {
       return;
     }
 
+    const sessionQuestions = buildSessionQuestions();
     onEndSession({
       correct: correctCount,
       attempted: attemptedCount,
       total: totalQuestions,
       completed: attemptedCount === totalQuestions && totalQuestions > 0,
+      questions: sessionQuestions,
     });
-  }, [onEndSession, correctCount, attemptedCount, totalQuestions]);
+  }, [onEndSession, correctCount, attemptedCount, totalQuestions, buildSessionQuestions]);
 
   const rows = (equations) =>
     equations.map((eq, index) => (

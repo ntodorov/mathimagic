@@ -13,6 +13,7 @@ function App() {
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
   const [currentSessionStats, setCurrentSessionStats] = React.useState({ correct: 0, total: 10 });
+  const [reviewSessionId, setReviewSessionId] = React.useState(null);
   const sessionFinalizedRef = React.useRef(false);
   const scrollTimeoutRef = React.useRef(null);
   const sessionActive = Boolean(activeSession);
@@ -20,6 +21,7 @@ function App() {
   const handleStartPractice = React.useCallback(() => {
     const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     sessionFinalizedRef.current = false;
+    setReviewSessionId(null);
     setActiveSession({
       id: sessionId,
       operationType: selectedOperation,
@@ -57,8 +59,9 @@ function App() {
       endedAt: new Date().toISOString(),
       correct: sessionResults.correct,
       attempted: sessionResults.attempted,
-      total: sessionResults.attempted,
+      total: sessionResults.total ?? sessionResults.attempted,
       completed: true,
+      questions: sessionResults.questions ?? [],
     });
     sessionFinalizedRef.current = true;
   }, [activeSession, recordSession]);
@@ -72,14 +75,19 @@ function App() {
         endedAt: new Date().toISOString(),
         correct: sessionResults.correct,
         attempted: sessionResults.attempted,
-        total: sessionResults.total,
+        total: sessionResults.total ?? sessionResults.attempted,
         completed: sessionResults.completed,
+        questions: sessionResults.questions ?? [],
       });
       sessionFinalizedRef.current = true;
     }
     setActiveSession(null);
     setCurrentSessionStats({ correct: 0, total: 10 });
   }, [activeSession, recordSession]);
+
+  const handleReviewToggle = React.useCallback((sessionId) => {
+    setReviewSessionId((prev) => (prev === sessionId ? null : sessionId));
+  }, []);
 
   const activeOption = getOperationOption(activeSession?.operationType ?? selectedOperation);
   const sessionProgressPercent = currentSessionStats.total > 0
@@ -101,6 +109,10 @@ function App() {
       minute: '2-digit',
     });
   };
+
+  const reviewSession = sessions.find((session) => session.id === reviewSessionId) ?? null;
+  const reviewOption = reviewSession ? getOperationOption(reviewSession.operationType) : null;
+  const reviewQuestions = Array.isArray(reviewSession?.questions) ? reviewSession.questions : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-100 via-pink-50 to-purple-100 text-slate-900">
@@ -286,6 +298,120 @@ function App() {
                 </h2>
               </div>
             </div>
+            {sessions.length > 0 && (
+              <p className="mt-2 text-xs text-slate-500">
+                Tap Review Answers to see a read-only snapshot.
+              </p>
+            )}
+            {reviewSession && (
+              <div className="mt-4 rounded-3xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-sky-50 p-4 shadow-inner">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                      Review Mode
+                    </p>
+                    <h3 className="text-lg font-bold text-indigo-700">
+                      {reviewOption?.label ?? 'Session'} Review
+                    </h3>
+                    <p className="text-sm text-indigo-600">
+                      Read-only snapshot of a past session.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-1 text-xs font-semibold text-indigo-600">
+                      Read-only
+                    </span>
+                    <button
+                      type="button"
+                      className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
+                      onClick={() => setReviewSessionId(null)}
+                    >
+                      Exit Review
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-3 rounded-2xl border border-indigo-100 bg-white/80 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-slate-500">
+                        {formatSessionTimestamp(reviewSession.endedAt ?? reviewSession.startedAt)}
+                      </p>
+                      <p className="text-sm font-bold text-slate-700">
+                        {reviewOption?.label ?? 'Session'} Summary
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-indigo-600">
+                        {Number(reviewSession.correct) || 0}/{Number(reviewSession.attempted) || 0}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {reviewSession.completed ? 'Completed' : 'Ended early'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {reviewQuestions.length === 0 ? (
+                  <p className="mt-3 text-sm text-slate-500">
+                    This session was saved before answer details were available.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {reviewQuestions.map((question) => {
+                      const rawAnswer = question.answer ?? '';
+                      const answerText = String(rawAnswer).trim();
+                      const hasAnswer = typeof question.hasAnswer === 'boolean'
+                        ? question.hasAnswer
+                        : answerText !== '';
+                      const isCorrect = typeof question.isCorrect === 'boolean'
+                        ? question.isCorrect
+                        : hasAnswer && Number(answerText) === Number(question.solution);
+                      const statusLabel = isCorrect ? 'Correct' : hasAnswer ? 'Incorrect' : 'Skipped';
+                      const statusClass = isCorrect
+                        ? 'text-green-600'
+                        : hasAnswer
+                          ? 'text-rose-500'
+                          : 'text-slate-400';
+                      const cardClass = isCorrect
+                        ? 'border-green-200 bg-green-50'
+                        : hasAnswer
+                          ? 'border-rose-200 bg-rose-50'
+                          : 'border-slate-200 bg-white';
+                      const operationSymbol = question.operation ?? reviewOption?.symbol ?? '';
+
+                      return (
+                        <li
+                          key={`${reviewSession.id}-${question.id}`}
+                          className={`rounded-2xl border-2 p-3 ${cardClass}`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-bold text-slate-700">
+                              {question.x} {operationSymbol} {question.y} =
+                            </p>
+                            <span className={`text-xs font-bold uppercase ${statusClass}`}>
+                              {statusLabel}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                            <p>
+                              Kid's Answer:{' '}
+                              <span className="font-semibold text-slate-700">
+                                {hasAnswer ? answerText : 'Not answered'}
+                              </span>
+                            </p>
+                            <p>
+                              Correct Answer:{' '}
+                              <span className="font-semibold text-slate-700">
+                                {question.solution}
+                              </span>
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
             {sessions.length === 0 ? (
               <p className="mt-3 text-sm text-slate-500">
                 No sessions yet. Finish a session to see it here!
@@ -298,15 +424,23 @@ function App() {
                   const attempted = Number(session.attempted) || 0;
                   const total = Number(session.total) || attempted;
                   const timestamp = formatSessionTimestamp(session.endedAt ?? session.startedAt);
+                  const isReviewing = reviewSessionId === session.id;
                   return (
                     <li
                       key={session.id}
-                      className="rounded-2xl border border-slate-200 bg-white/80 p-3"
+                      className={`rounded-2xl border border-slate-200 bg-white/80 p-3 ${
+                        isReviewing ? 'ring-2 ring-indigo-200' : ''
+                      }`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-sm font-bold text-slate-700">
                             {option.label} Session
+                            {isReviewing && (
+                              <span className="ml-2 inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-600">
+                                Reviewing
+                              </span>
+                            )}
                           </p>
                           {timestamp && (
                             <p className="text-xs text-slate-500">{timestamp}</p>
@@ -321,9 +455,19 @@ function App() {
                           </p>
                         </div>
                       </div>
-                      <p className="mt-2 text-xs text-slate-500">
-                        Answered {attempted} of {total}
-                      </p>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs text-slate-500">
+                          Answered {attempted} of {total}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleReviewToggle(session.id)}
+                          aria-pressed={isReviewing}
+                          className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
+                        >
+                          {isReviewing ? 'Close Review' : 'Review Answers'}
+                        </button>
+                      </div>
                     </li>
                   );
                 })}
