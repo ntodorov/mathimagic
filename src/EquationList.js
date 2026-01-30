@@ -96,16 +96,26 @@ const EquationList = ({
   const [answers, setAnswers] = React.useState({});
   const [sessionCompleted, setSessionCompleted] = React.useState(false);
   const firstInputRef = React.useRef(null);
+  const focusTimeoutRef = React.useRef(null);
 
   const resetSession = React.useCallback((nextOperationType) => {
     const resolvedType = nextOperationType ?? operationType;
     setOperation(buildOperation(resolvedType));
     setAnswers({});
     setSessionCompleted(false);
-    setTimeout(() => {
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+    }
+    focusTimeoutRef.current = setTimeout(() => {
       firstInputRef.current?.focus({ preventScroll: true });
     }, 100);
   }, [operationType]);
+
+  React.useEffect(() => () => {
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+    }
+  }, []);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({

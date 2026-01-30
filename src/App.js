@@ -14,6 +14,7 @@ function App() {
   const [sessionKey, setSessionKey] = React.useState(0);
   const [currentSessionStats, setCurrentSessionStats] = React.useState({ correct: 0, total: 10 });
   const sessionFinalizedRef = React.useRef(false);
+  const scrollTimeoutRef = React.useRef(null);
   const sessionActive = Boolean(activeSession);
 
   const handleStartPractice = React.useCallback(() => {
@@ -26,11 +27,20 @@ function App() {
     });
     setSessionKey((prev) => prev + 1);
     setCurrentSessionStats({ correct: 0, total: 10 });
-    setTimeout(() => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
       const practiceSection = document.getElementById(PRACTICE_SECTION_ID);
       practiceSection?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     }, 100);
   }, [selectedOperation]);
+
+  React.useEffect(() => () => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+  }, []);
 
   const handleSessionProgress = React.useCallback((correct, total) => {
     setCurrentSessionStats({ correct, total });
