@@ -129,7 +129,7 @@ test('reviews past sessions in read-only mode', async () => {
     await user.click(reviewButton);
 
     expect(screen.getByText(/Review Mode/i)).toBeInTheDocument();
-    expect(screen.getByText(/Read-only/i)).toBeInTheDocument();
+    expect(screen.getByText('Read-only', { selector: 'span' })).toBeInTheDocument();
     expect(screen.getByText(/Kid's Answer/i)).toBeInTheDocument();
     expect(screen.getByText(/Correct Answer/i)).toBeInTheDocument();
     expect(screen.queryAllByRole('textbox')).toHaveLength(0);
