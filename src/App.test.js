@@ -58,3 +58,53 @@ test('start practice shows equations and moves focus to first question', async (
     expect(firstInput).toHaveFocus();
   });
 });
+
+test('locks challenge selection during a session', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  expect(screen.getByText(/Choose a Challenge/i)).toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Challenge Locked/i)).toBeInTheDocument();
+  });
+
+  expect(screen.queryByText(/Choose a Challenge/i)).not.toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: /end session/i }));
+
+  await waitFor(() => {
+    expect(screen.getByText(/Choose a Challenge/i)).toBeInTheDocument();
+  });
+});
+
+test('records ended sessions in the history list', async () => {
+  const user = userEvent.setup();
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+  try {
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+    const firstInput = await screen.findByRole('textbox', {
+      name: /answer for question 1$/i,
+    });
+    await user.type(firstInput, '1');
+
+    await user.click(screen.getByRole('button', { name: /end session/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Past Sessions/i)).toBeInTheDocument();
+      expect(screen.getByText(/Subtraction Session/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('1/1')).toBeInTheDocument();
+    expect(screen.getByText(/Ended early/i)).toBeInTheDocument();
+    expect(screen.getByText(/Answered 1 of 10/i)).toBeInTheDocument();
+  } finally {
+    randomSpy.mockRestore();
+  }
+});

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EquationList from './EquationList';
 
@@ -21,38 +21,34 @@ describe('EquationList', () => {
     expect(screen.getAllByText(/2\s-\s1\s=/)).toHaveLength(10);
   });
 
-  test('switches to addition equations when selected', async () => {
-    const user = userEvent.setup();
+  test('renders addition equations when operationType is addition', () => {
+    render(<EquationList operationType="addition" />);
 
-    render(<EquationList />);
-
-    await user.click(screen.getByRole('button', { name: /addition/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Addition Challenge/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/Addition Challenge/i)).toBeInTheDocument();
     expect(screen.getAllByText(/1\s\+\s1\s=/)).toHaveLength(10);
   });
 
-  test('switches to multiplication equations when selected', async () => {
-    const user = userEvent.setup();
+  test('renders multiplication equations when operationType is multiplication', () => {
+    render(<EquationList operationType="multiplication" />);
 
-    render(<EquationList />);
-
-    await user.click(screen.getByRole('button', { name: /multiply/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Multiply Challenge/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/Multiply Challenge/i)).toBeInTheDocument();
     expect(screen.getAllByText(/1\s×\s1\s=/)).toHaveLength(10);
   });
 
-  test('renders all three operation buttons', () => {
-    render(<EquationList />);
+  test('calls onEndSession with current stats', async () => {
+    const user = userEvent.setup();
+    const onEndSession = jest.fn();
 
-    expect(screen.getByRole('button', { name: /addition/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /subtraction/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /multiply/i })).toBeInTheDocument();
+    render(<EquationList onEndSession={onEndSession} />);
+
+    await user.click(screen.getByRole('button', { name: /end session/i }));
+
+    expect(onEndSession).toHaveBeenCalledWith({
+      correct: 0,
+      attempted: 0,
+      total: 10,
+      completed: false,
+    });
   });
 
   test('updates session stats as answers are correct', async () => {
