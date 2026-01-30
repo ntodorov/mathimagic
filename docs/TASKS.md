@@ -3,6 +3,7 @@
 Follow this rule when updating task status:
 - When starting a task, mark it with "- in progress".
 - When finished and tests pass, mark it with "- done".
+- A task is only finished when tests are green.
 
 1. Build mobile-first home/practice layout with hero CTA, progress summary, and spacing. - done
 2. Improve equation cards (larger type, numeric keypad, friendly feedback text). - done
