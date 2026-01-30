@@ -7,6 +7,7 @@ function Equation(props) {
     inputRef,
     value = '',
     onNext,
+    enterKeyHint,
   } = props;
 
   const trimmedValue = value.trim();
@@ -73,13 +74,14 @@ function Equation(props) {
           autoComplete="off"
           inputMode="numeric"
           pattern="[0-9]*"
+          enterKeyHint={enterKeyHint}
           aria-label={`Answer for question ${eq.id}`}
           placeholder="?"
         />
       </div>
       {hasAnswer && onNext && (
         <p className="mt-2 text-xs font-semibold text-slate-500">
-          Press Enter or Next to continue.
+          Press Enter, swipe, or tap Next to continue.
         </p>
       )}
     </div>
