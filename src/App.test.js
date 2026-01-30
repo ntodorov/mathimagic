@@ -47,7 +47,7 @@ test('start practice shows equations and moves focus to first question', async (
 
   // Now equations should be visible
   await waitFor(() => {
-    expect(screen.getAllByRole('textbox')).toHaveLength(10);
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
   });
 
   const firstInput = screen.getByRole('textbox', {

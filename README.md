@@ -11,10 +11,11 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 
 - Phone/tablet-first layout with large tap targets
 - Fast loading and simple UI
-- Friendly feedback after each answer
+- Single-question practice flow with Next/Enter navigation
+- Results shown after ending a session or in review mode
 - Addition, subtraction, and multiplication practice sessions
 - Session history with read-only review of past answers
-- Session progress, streaks, and daily goal
+- Session progress indicator
 
 ## Tech Stack
 

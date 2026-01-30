@@ -37,6 +37,9 @@
 - Optional reduced motion.
 - Review mode is clearly labeled and read-only.
 
+### Delivery Requirements
+- A task is only complete when tests are green.
+
 ### Performance Targets
 - App shell under 100KB JS (gzipped).
 - Defer non-critical assets.

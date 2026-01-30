@@ -3,6 +3,7 @@
 Follow this rule when updating task status:
 - When starting a task, mark it with "- in progress".
 - When finished and tests pass, mark it with "- done".
+- A task is only finished when tests are green.
 
 1. Build mobile-first home/practice layout with hero CTA, progress summary, and spacing. - done
 2. Improve equation cards (larger type, numeric keypad, friendly feedback text). - done
@@ -18,3 +19,6 @@ Follow this rule when updating task status:
 12. Update operation selector to show all three modes (addition, subtraction, multiplication). - done
 13. Save full session equations and answers for review. - done
 14. Add read-only session review view and update docs. - done
+15. Switch practice flow to a single card with Next/Enter navigation. - done
+16. Delay correctness feedback until session end or review. - done
+17. Update tests for single-card navigation and deferred feedback. - done

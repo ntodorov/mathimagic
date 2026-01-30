@@ -12,7 +12,7 @@ function App() {
   const [selectedOperation, setSelectedOperation] = React.useState(DEFAULT_OPERATION);
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
-  const [currentSessionStats, setCurrentSessionStats] = React.useState({ correct: 0, total: 10 });
+  const [currentSessionStats, setCurrentSessionStats] = React.useState({ answered: 0, total: 10 });
   const [reviewSessionId, setReviewSessionId] = React.useState(null);
   const sessionFinalizedRef = React.useRef(false);
   const scrollTimeoutRef = React.useRef(null);
@@ -28,7 +28,7 @@ function App() {
       startedAt: new Date().toISOString(),
     });
     setSessionKey((prev) => prev + 1);
-    setCurrentSessionStats({ correct: 0, total: 10 });
+    setCurrentSessionStats({ answered: 0, total: 10 });
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
@@ -44,27 +44,9 @@ function App() {
     }
   }, []);
 
-  const handleSessionProgress = React.useCallback((correct, total) => {
-    setCurrentSessionStats({ correct, total });
+  const handleSessionProgress = React.useCallback((answered, total) => {
+    setCurrentSessionStats({ answered, total });
   }, []);
-
-  const handleSessionComplete = React.useCallback((sessionResults) => {
-    if (!activeSession || sessionFinalizedRef.current) {
-      return;
-    }
-    recordSession({
-      id: activeSession.id,
-      operationType: activeSession.operationType,
-      startedAt: activeSession.startedAt,
-      endedAt: new Date().toISOString(),
-      correct: sessionResults.correct,
-      attempted: sessionResults.attempted,
-      total: sessionResults.total ?? sessionResults.attempted,
-      completed: true,
-      questions: sessionResults.questions ?? [],
-    });
-    sessionFinalizedRef.current = true;
-  }, [activeSession, recordSession]);
 
   const handleEndSession = React.useCallback((sessionResults) => {
     if (activeSession && !sessionFinalizedRef.current) {
@@ -82,7 +64,7 @@ function App() {
       sessionFinalizedRef.current = true;
     }
     setActiveSession(null);
-    setCurrentSessionStats({ correct: 0, total: 10 });
+    setCurrentSessionStats({ answered: 0, total: 10 });
   }, [activeSession, recordSession]);
 
   const handleReviewToggle = React.useCallback((sessionId) => {
@@ -91,7 +73,7 @@ function App() {
 
   const activeOption = getOperationOption(activeSession?.operationType ?? selectedOperation);
   const sessionProgressPercent = currentSessionStats.total > 0
-    ? Math.round((currentSessionStats.correct / currentSessionStats.total) * 100)
+    ? Math.round((currentSessionStats.answered / currentSessionStats.total) * 100)
     : 0;
 
   const formatSessionTimestamp = (timestamp) => {
@@ -251,7 +233,7 @@ function App() {
                     />
                   </div>
                   <p className="mt-1 text-sm font-bold text-green-600">
-                    {currentSessionStats.correct} / {currentSessionStats.total} ⭐
+                    Answered {currentSessionStats.answered} / {currentSessionStats.total}
                   </p>
                 </div>
               )}
@@ -265,7 +247,6 @@ function App() {
               focusSignal={sessionKey}
               operationType={activeSession?.operationType ?? selectedOperation}
               onProgress={handleSessionProgress}
-              onSessionComplete={handleSessionComplete}
               onNewSession={handleStartPractice}
               onEndSession={handleEndSession}
             />

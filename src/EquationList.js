@@ -87,7 +87,6 @@ const EquationList = ({
   sectionId,
   focusSignal,
   onProgress,
-  onSessionComplete,
   onNewSession,
   onEndSession,
   operationType = DEFAULT_OPERATION,
@@ -95,27 +94,37 @@ const EquationList = ({
   const [operation, setOperation] = React.useState(() => buildOperation(operationType));
   const [answers, setAnswers] = React.useState({});
   const [sessionCompleted, setSessionCompleted] = React.useState(false);
-  const firstInputRef = React.useRef(null);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const activeInputRef = React.useRef(null);
   const focusTimeoutRef = React.useRef(null);
+
+  const scheduleFocus = React.useCallback(() => {
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+    }
+    focusTimeoutRef.current = setTimeout(() => {
+      activeInputRef.current?.focus({ preventScroll: true });
+    }, 100);
+  }, []);
 
   const resetSession = React.useCallback((nextOperationType) => {
     const resolvedType = nextOperationType ?? operationType;
     setOperation(buildOperation(resolvedType));
     setAnswers({});
     setSessionCompleted(false);
-    if (focusTimeoutRef.current) {
-      clearTimeout(focusTimeoutRef.current);
-    }
-    focusTimeoutRef.current = setTimeout(() => {
-      firstInputRef.current?.focus({ preventScroll: true });
-    }, 100);
-  }, [operationType]);
+    setCurrentIndex(0);
+    scheduleFocus();
+  }, [operationType, scheduleFocus]);
 
   React.useEffect(() => () => {
     if (focusTimeoutRef.current) {
       clearTimeout(focusTimeoutRef.current);
     }
   }, []);
+
+  React.useEffect(() => {
+    scheduleFocus();
+  }, [currentIndex, scheduleFocus]);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({
@@ -168,33 +177,23 @@ const EquationList = ({
   const answerEntries = Object.values(answers);
   const correctCount = answerEntries.filter((entry) => entry.isCorrect).length;
   const attemptedCount = answerEntries.filter((entry) => entry.hasAnswer).length;
-  const progressValue = totalQuestions === 0 ? 0 : (correctCount / totalQuestions) * 100;
+  const progressValue = totalQuestions === 0 ? 0 : (attemptedCount / totalQuestions) * 100;
 
   const activeOption = getOperationOption(operationType);
 
   // Call onProgress when progress changes
   React.useEffect(() => {
     if (onProgress) {
-      onProgress(correctCount, totalQuestions);
+      onProgress(attemptedCount, totalQuestions);
     }
-  }, [correctCount, totalQuestions, onProgress]);
+  }, [attemptedCount, totalQuestions, onProgress]);
 
   // Check for session completion
   React.useEffect(() => {
     if (attemptedCount === totalQuestions && attemptedCount > 0 && !sessionCompleted) {
       setSessionCompleted(true);
-      if (onSessionComplete) {
-        const sessionQuestions = buildSessionQuestions();
-        onSessionComplete({
-          correct: correctCount,
-          attempted: totalQuestions,
-          total: totalQuestions,
-          completed: true,
-          questions: sessionQuestions,
-        });
-      }
     }
-  }, [attemptedCount, totalQuestions, correctCount, sessionCompleted, onSessionComplete, buildSessionQuestions]);
+  }, [attemptedCount, totalQuestions, sessionCompleted]);
 
   const handleEndSession = React.useCallback(() => {
     if (!onEndSession) {
@@ -210,16 +209,25 @@ const EquationList = ({
       questions: sessionQuestions,
     });
   }, [onEndSession, correctCount, attemptedCount, totalQuestions, buildSessionQuestions]);
+  const currentEquation = operation.equations[currentIndex];
+  const currentAnswer = currentEquation ? answers[currentEquation.id] : null;
+  const currentAnswerValue = currentAnswer?.value ?? '';
+  const isLastQuestion = totalQuestions > 0 && currentIndex >= totalQuestions - 1;
+  const canAdvance = Boolean(currentAnswer?.hasAnswer);
+  const questionNumber = totalQuestions === 0 ? 0 : currentIndex + 1;
 
-  const rows = (equations) =>
-    equations.map((eq, index) => (
-      <Equation
-        eq={eq}
-        key={eq.id.toString()}
-        onAnswerChange={handleAnswerChange}
-        inputRef={index === 0 ? firstInputRef : undefined}
-      />
-    ));
+  const handleNext = React.useCallback((valueOverride) => {
+    if (!currentEquation) {
+      return;
+    }
+    const valueToCheck = valueOverride ?? currentAnswer?.value ?? '';
+    if (String(valueToCheck).trim() === '') {
+      return;
+    }
+    if (currentIndex < totalQuestions - 1) {
+      setCurrentIndex((prev) => Math.min(prev + 1, totalQuestions - 1));
+    }
+  }, [currentEquation, currentAnswer, currentIndex, totalQuestions]);
 
   return (
     <section
@@ -239,7 +247,41 @@ const EquationList = ({
           </div>
         </div>
 
-        <div className="space-y-3">{rows(operation.equations)}</div>
+        <div className="space-y-3">
+          {currentEquation ? (
+            <Equation
+              eq={currentEquation}
+              key={`${operation.type}-${currentEquation.id}`}
+              onAnswerChange={handleAnswerChange}
+              inputRef={activeInputRef}
+              value={currentAnswerValue}
+              onNext={isLastQuestion ? undefined : handleNext}
+            />
+          ) : (
+            <p className="text-sm font-semibold text-slate-500">
+              No questions available yet.
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-white/80 p-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                Question
+              </p>
+              <p className="text-sm font-semibold text-slate-700">
+                {questionNumber} of {totalQuestions}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+              onClick={() => handleNext()}
+              disabled={!canAdvance || isLastQuestion}
+            >
+              Next
+              <span aria-hidden="true">➡️</span>
+            </button>
+          </div>
+        </div>
         
         <hr className="border-indigo-200" />
         
@@ -247,13 +289,13 @@ const EquationList = ({
           {/* Session Stats */}
           <div className="flex items-center justify-between rounded-2xl bg-white/60 p-3">
             <div className="flex items-center gap-2">
-              <span className="text-xl">⭐</span>
+              <span className="text-xl">📝</span>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-amber-600">
-                  Stars Earned
+                  Answered
                 </p>
                 <p className="text-xl font-bold text-amber-600">
-                  {correctCount}
+                  {attemptedCount}
                 </p>
               </div>
             </div>
@@ -264,7 +306,7 @@ const EquationList = ({
                   Progress
                 </p>
                 <p className="text-xl font-bold text-purple-600">
-                  {correctCount}/{totalQuestions}
+                  {attemptedCount}/{totalQuestions}
                 </p>
               </div>
             </div>
@@ -288,16 +330,12 @@ const EquationList = ({
           {/* Completion Message */}
           {sessionCompleted && (
             <div className="rounded-2xl bg-gradient-to-r from-green-100 to-teal-100 p-4 text-center border-2 border-green-300">
-              <div className="text-4xl mb-2">🎉🌟🎉</div>
+              <div className="text-4xl mb-2">🎉</div>
               <p className="text-lg font-bold text-green-700">
-                Amazing job! You got {correctCount} out of {totalQuestions}!
+                All questions answered!
               </p>
               <p className="text-sm text-green-600">
-                {correctCount === totalQuestions 
-                  ? "PERFECT SCORE! You're a math superstar! ⭐" 
-                  : correctCount >= totalQuestions * 0.7 
-                    ? "Great work! Keep practicing! 💪" 
-                    : "Good effort! Practice makes perfect! 🌈"}
+                Press End Session to see your results.
               </p>
             </div>
           )}

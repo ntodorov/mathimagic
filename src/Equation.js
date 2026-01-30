@@ -1,57 +1,36 @@
 import * as React from 'react';
 
-const FeedbackIcon = ({ isError }) => {
-  const label = isError ? 'feedback-icon-incorrect' : 'feedback-icon-correct';
-
-  return (
-    <span
-      data-testid={label}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold ${
-        isError
-          ? 'bg-rose-100 text-rose-600'
-          : 'bg-green-100 text-green-600'
-      }`}
-      aria-hidden="true"
-    >
-      {isError ? '❌' : '⭐'}
-    </span>
-  );
-};
-
 function Equation(props) {
-  const { eq, onAnswerChange, inputRef } = props;
-  const [answer, setAnswer] = React.useState('');
-  const [error, setError] = React.useState(false);
+  const {
+    eq,
+    onAnswerChange,
+    inputRef,
+    value = '',
+    onNext,
+  } = props;
+
+  const trimmedValue = value.trim();
+  const hasAnswer = trimmedValue !== '';
 
   const handleChange = (e) => {
     const nextValue = e.target.value;
-    const trimmedValue = nextValue.trim();
-    const hasAnswer = trimmedValue !== '';
-    const isCorrect = hasAnswer && Number(trimmedValue) === eq.solution;
+    const trimmedNextValue = nextValue.trim();
+    const nextHasAnswer = trimmedNextValue !== '';
+    const nextIsCorrect = nextHasAnswer && Number(trimmedNextValue) === eq.solution;
 
-    setAnswer(nextValue);
-
-    if (!hasAnswer) {
-      setError(false);
-      onAnswerChange?.(eq.id, {
-        value: nextValue,
-        hasAnswer,
-        isCorrect,
-      });
-      return;
-    }
-
-    setError(!isCorrect);
     onAnswerChange?.(eq.id, {
       value: nextValue,
-      hasAnswer,
-      isCorrect,
+      hasAnswer: nextHasAnswer,
+      isCorrect: nextIsCorrect,
     });
   };
 
-  const hasAnswer = answer.trim() !== '';
-  const isCorrect = hasAnswer && !error;
-  const feedbackText = hasAnswer ? (error ? 'Try again! 💪' : 'Awesome! 🎉') : '';
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onNext?.(event.currentTarget.value);
+    }
+  };
 
   // Fun colors for each question number
   const numberColors = [
@@ -70,14 +49,8 @@ function Equation(props) {
   const colorClass = numberColors[(eq.id - 1) % numberColors.length];
 
   return (
-    <div 
-      className={`w-full rounded-2xl border-2 px-4 py-3 shadow-sm transition-all ${
-        hasAnswer && isCorrect 
-          ? 'border-green-300 bg-gradient-to-r from-green-50 to-teal-50' 
-          : hasAnswer && error 
-            ? 'border-rose-300 bg-gradient-to-r from-rose-50 to-orange-50'
-            : 'border-purple-200 bg-white'
-      }`}
+    <div
+      className="w-full rounded-2xl border-2 border-purple-200 bg-white px-4 py-3 shadow-sm transition-all"
     >
       <div className="flex items-center justify-between">
         <span 
@@ -85,23 +58,17 @@ function Equation(props) {
         >
           {eq.id}
         </span>
-        {hasAnswer && <FeedbackIcon isError={error} />}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <span className="text-2xl font-bold text-slate-700">
           {eq.x} {eq.operation} {eq.y} =
         </span>
         <input
-          value={answer}
-          className={`w-20 rounded-xl border-2 px-3 py-2 text-center text-xl font-bold text-slate-900 focus:outline-none focus:ring-2 ${
-            hasAnswer && error
-              ? 'border-rose-300 bg-rose-50 focus:border-rose-400 focus:ring-rose-200'
-              : hasAnswer && isCorrect
-                ? 'border-green-300 bg-green-50 focus:border-green-400 focus:ring-green-200'
-                : 'border-purple-300 bg-white focus:border-purple-400 focus:ring-purple-200'
-          }`}
+          value={value}
+          className="w-20 rounded-xl border-2 border-purple-300 bg-white px-3 py-2 text-center text-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:border-purple-400 focus:ring-purple-200"
           type="tel"
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           ref={inputRef}
           autoComplete="off"
           inputMode="numeric"
@@ -110,14 +77,11 @@ function Equation(props) {
           placeholder="?"
         />
       </div>
-      <p
-        className={`mt-2 text-sm font-bold ${
-          error ? 'text-rose-500' : 'text-green-500'
-        }`}
-        aria-live="polite"
-      >
-        {feedbackText}
-      </p>
+      {hasAnswer && onNext && (
+        <p className="mt-2 text-xs font-semibold text-slate-500">
+          Press Enter or Next to continue.
+        </p>
+      )}
     </div>
   );
 }
