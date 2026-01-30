@@ -12,7 +12,7 @@
   - Quick picks: Grade, Operation (addition/subtraction/multiplication), Difficulty
   - Continue last session if available
 - Practice
-  - Single equation focus
+  - Single equation focus with swipeable carousel navigation
   - Operation selector for addition, subtraction, and multiplication
   - Immediate feedback
   - Streak + progress indicator
@@ -36,6 +36,8 @@
 - Friendly hints after mistakes.
 - Optional reduced motion.
 - Review mode is clearly labeled and read-only.
+- Keep the numeric keypad open by preserving input focus on advance.
+- Support swipe left/right plus previous/next buttons for navigation.
 
 ### Delivery Requirements
 - A task is only complete when tests are green.
@@ -49,6 +51,7 @@
 - Contrast AA or better.
 - Numeric keypad on mobile for input.
 - Clear focus states and labels.
+- Enter key hints reflect next/done when moving through questions.
 
 ### Success Metrics
 - Time to first answer under 10 seconds.

@@ -97,15 +97,20 @@ const EquationList = ({
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const activeInputRef = React.useRef(null);
   const focusTimeoutRef = React.useRef(null);
+  const swipeStartRef = React.useRef({ x: 0, y: 0, ignore: false });
+
+  const focusInput = React.useCallback(() => {
+    activeInputRef.current?.focus({ preventScroll: true });
+  }, []);
 
   const scheduleFocus = React.useCallback(() => {
     if (focusTimeoutRef.current) {
       clearTimeout(focusTimeoutRef.current);
     }
     focusTimeoutRef.current = setTimeout(() => {
-      activeInputRef.current?.focus({ preventScroll: true });
+      focusInput();
     }, 100);
-  }, []);
+  }, [focusInput]);
 
   const resetSession = React.useCallback((nextOperationType) => {
     const resolvedType = nextOperationType ?? operationType;
@@ -214,6 +219,7 @@ const EquationList = ({
   const currentAnswerValue = currentAnswer?.value ?? '';
   const isLastQuestion = totalQuestions > 0 && currentIndex >= totalQuestions - 1;
   const canAdvance = Boolean(currentAnswer?.hasAnswer);
+  const canGoBack = currentIndex > 0;
   const questionNumber = totalQuestions === 0 ? 0 : currentIndex + 1;
 
   const handleNext = React.useCallback((valueOverride) => {
@@ -222,12 +228,52 @@ const EquationList = ({
     }
     const valueToCheck = valueOverride ?? currentAnswer?.value ?? '';
     if (String(valueToCheck).trim() === '') {
+      focusInput();
       return;
     }
-    if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex((prev) => Math.min(prev + 1, totalQuestions - 1));
+    focusInput();
+    setCurrentIndex((prev) => Math.min(prev + 1, totalQuestions - 1));
+  }, [currentEquation, currentAnswer, totalQuestions, focusInput]);
+
+  const handlePrev = React.useCallback(() => {
+    focusInput();
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  }, [focusInput]);
+
+  const handleSwipeStart = React.useCallback((event) => {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
     }
-  }, [currentEquation, currentAnswer, currentIndex, totalQuestions]);
+    swipeStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      ignore: event.target?.tagName === 'INPUT',
+    };
+  }, []);
+
+  const handleSwipeEnd = React.useCallback((event) => {
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      return;
+    }
+    const { x, y, ignore } = swipeStartRef.current;
+    if (ignore) {
+      return;
+    }
+    const deltaX = touch.clientX - x;
+    const deltaY = touch.clientY - y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    if (absX < 40 || absX < absY) {
+      return;
+    }
+    if (deltaX < 0) {
+      handleNext();
+    } else {
+      handlePrev();
+    }
+  }, [handleNext, handlePrev]);
 
   return (
     <section
@@ -248,20 +294,22 @@ const EquationList = ({
         </div>
 
         <div className="space-y-3">
-          {currentEquation ? (
-            <Equation
-              eq={currentEquation}
-              key={`${operation.type}-${currentEquation.id}`}
-              onAnswerChange={handleAnswerChange}
-              inputRef={activeInputRef}
-              value={currentAnswerValue}
-              onNext={isLastQuestion ? undefined : handleNext}
-            />
-          ) : (
-            <p className="text-sm font-semibold text-slate-500">
-              No questions available yet.
-            </p>
-          )}
+          <div onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
+            {currentEquation ? (
+              <Equation
+                eq={currentEquation}
+                onAnswerChange={handleAnswerChange}
+                inputRef={activeInputRef}
+                value={currentAnswerValue}
+                onNext={isLastQuestion ? undefined : handleNext}
+                enterKeyHint={isLastQuestion ? 'done' : 'next'}
+              />
+            ) : (
+              <p className="text-sm font-semibold text-slate-500">
+                No questions available yet.
+              </p>
+            )}
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-white/80 p-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
@@ -271,15 +319,26 @@ const EquationList = ({
                 {questionNumber} of {totalQuestions}
               </p>
             </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
-              onClick={() => handleNext()}
-              disabled={!canAdvance || isLastQuestion}
-            >
-              Next
-              <span aria-hidden="true">➡️</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-100 bg-white px-3 py-2 text-xs font-bold text-indigo-500 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                onClick={handlePrev}
+                disabled={!canGoBack}
+              >
+                <span aria-hidden="true">⬅️</span>
+                Previous
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                onClick={() => handleNext()}
+                disabled={!canAdvance || isLastQuestion}
+              >
+                Next
+                <span aria-hidden="true">➡️</span>
+              </button>
+            </div>
           </div>
         </div>
         
