@@ -108,3 +108,32 @@ test('records ended sessions in the history list', async () => {
     randomSpy.mockRestore();
   }
 });
+
+test('reviews past sessions in read-only mode', async () => {
+  const user = userEvent.setup();
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+  try {
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+    const firstInput = await screen.findByRole('textbox', {
+      name: /answer for question 1$/i,
+    });
+    await user.type(firstInput, '1');
+
+    await user.click(screen.getByRole('button', { name: /end session/i }));
+
+    const reviewButton = await screen.findByRole('button', { name: /review answers/i });
+    await user.click(reviewButton);
+
+    expect(screen.getByText(/Review Mode/i)).toBeInTheDocument();
+    expect(screen.getByText('Read-only', { selector: 'span' })).toBeInTheDocument();
+    expect(screen.getAllByText(/Kid's Answer/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Correct Answer/i).length).toBeGreaterThan(0);
+    expect(screen.queryAllByRole('textbox')).toHaveLength(0);
+  } finally {
+    randomSpy.mockRestore();
+  }
+});

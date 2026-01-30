@@ -43,12 +43,26 @@ describe('EquationList', () => {
 
     await user.click(screen.getByRole('button', { name: /end session/i }));
 
-    expect(onEndSession).toHaveBeenCalledWith({
+    expect(onEndSession).toHaveBeenCalledWith(expect.objectContaining({
       correct: 0,
       attempted: 0,
       total: 10,
       completed: false,
-    });
+      questions: expect.any(Array),
+    }));
+
+    const [sessionPayload] = onEndSession.mock.calls[0];
+    expect(sessionPayload.questions).toHaveLength(10);
+    expect(sessionPayload.questions[0]).toEqual(expect.objectContaining({
+      id: 1,
+      x: 2,
+      y: 1,
+      operation: '-',
+      solution: 1,
+      answer: '',
+      hasAnswer: false,
+      isCorrect: false,
+    }));
   });
 
   test('updates session stats as answers are correct', async () => {
