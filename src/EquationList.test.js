@@ -13,26 +13,26 @@ describe('EquationList', () => {
     randomSpy.mockRestore();
   });
 
-  test('renders 10 subtraction equations by default', () => {
+  test('renders a single subtraction card by default', () => {
     render(<EquationList />);
 
     expect(screen.getByText(/Subtraction Challenge/i)).toBeInTheDocument();
-    expect(screen.getAllByRole('textbox')).toHaveLength(10);
-    expect(screen.getAllByText(/2\s-\s1\s=/)).toHaveLength(10);
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    expect(screen.getAllByText(/2\s-\s1\s=/)).toHaveLength(1);
   });
 
   test('renders addition equations when operationType is addition', () => {
     render(<EquationList operationType="addition" />);
 
     expect(screen.getByText(/Addition Challenge/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/1\s\+\s1\s=/)).toHaveLength(10);
+    expect(screen.getAllByText(/1\s\+\s1\s=/)).toHaveLength(1);
   });
 
   test('renders multiplication equations when operationType is multiplication', () => {
     render(<EquationList operationType="multiplication" />);
 
     expect(screen.getByText(/Multiply Challenge/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/1\s×\s1\s=/)).toHaveLength(10);
+    expect(screen.getAllByText(/1\s×\s1\s=/)).toHaveLength(1);
   });
 
   test('calls onEndSession with current stats', async () => {
@@ -65,20 +65,36 @@ describe('EquationList', () => {
     }));
   });
 
-  test('updates session stats as answers are correct', async () => {
+  test('updates session stats as answers are entered', async () => {
     const user = userEvent.setup();
 
     render(<EquationList />);
 
-    expect(screen.getByText(/Stars Earned/i)).toBeInTheDocument();
+    expect(screen.getByText(/Answered/i)).toBeInTheDocument();
     expect(screen.getByText(/Progress/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /Try New Problems/i })
     ).toBeInTheDocument();
 
-    const inputs = screen.getAllByRole('textbox');
-    await user.type(inputs[0], '1');
+    const input = screen.getByRole('textbox');
+    await user.type(input, '1');
 
     expect(screen.getByText('1/10')).toBeInTheDocument();
+  });
+
+  test('advances to the next question with Next', async () => {
+    const user = userEvent.setup();
+
+    render(<EquationList />);
+
+    const input = screen.getByRole('textbox', { name: /question 1/i });
+    await user.type(input, '1');
+
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    await user.click(nextButton);
+
+    expect(
+      screen.getByRole('textbox', { name: /question 2/i })
+    ).toBeInTheDocument();
   });
 });

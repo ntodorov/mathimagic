@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Equation from './Equation';
@@ -16,12 +17,27 @@ test('renders equation text', () => {
   expect(screen.getByText(/2\s-\s1\s=/)).toBeInTheDocument();
 });
 
-test('shows feedback icon based on answer', async () => {
+const EquationHarness = ({ onNext }) => {
+  const [value, setValue] = React.useState('');
+
+  return (
+    <Equation
+      eq={equation}
+      value={value}
+      onNext={onNext}
+      onAnswerChange={(id, payload) => setValue(payload.value)}
+    />
+  );
+};
+
+test('does not show correctness feedback while typing', async () => {
   const user = userEvent.setup();
 
-  render(<Equation eq={equation} />);
+  render(<EquationHarness />);
 
   const input = screen.getByRole('textbox');
+  await user.type(input, '5');
+
   expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
   expect(screen.queryByText(/awesome/i)).not.toBeInTheDocument();
   expect(
@@ -30,17 +46,16 @@ test('shows feedback icon based on answer', async () => {
   expect(
     screen.queryByTestId('feedback-icon-incorrect')
   ).not.toBeInTheDocument();
+});
 
-  await user.type(input, '5');
-  expect(screen.getByTestId('feedback-icon-incorrect')).toBeInTheDocument();
-  expect(screen.getByText(/try again/i)).toBeInTheDocument();
+test('pressing Enter calls onNext', async () => {
+  const user = userEvent.setup();
+  const onNext = jest.fn();
 
-  await user.clear(input);
-  expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();
-  await user.type(input, '1');
-  expect(screen.getByTestId('feedback-icon-correct')).toBeInTheDocument();
-  expect(screen.getByText(/awesome/i)).toBeInTheDocument();
-  expect(
-    screen.queryByTestId('feedback-icon-incorrect')
-  ).not.toBeInTheDocument();
+  render(<EquationHarness onNext={onNext} />);
+
+  const input = screen.getByRole('textbox');
+  await user.type(input, '1{enter}');
+
+  expect(onNext).toHaveBeenCalled();
 });
