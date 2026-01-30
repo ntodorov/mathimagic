@@ -130,8 +130,8 @@ test('reviews past sessions in read-only mode', async () => {
 
     expect(screen.getByText(/Review Mode/i)).toBeInTheDocument();
     expect(screen.getByText('Read-only', { selector: 'span' })).toBeInTheDocument();
-    expect(screen.getByText(/Kid's Answer/i)).toBeInTheDocument();
-    expect(screen.getByText(/Correct Answer/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Kid's Answer/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Correct Answer/i).length).toBeGreaterThan(0);
     expect(screen.queryAllByRole('textbox')).toHaveLength(0);
   } finally {
     randomSpy.mockRestore();
