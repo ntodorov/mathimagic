@@ -52,5 +52,16 @@ All project documentation lives in `docs/`:
 
 ## Deployment
 
-This project uses `gh-pages` for deployment. The `npm run deploy` script
-builds and publishes the `build/` directory to GitHub Pages.
+This project uses GitHub Actions for automatic deployment. When a PR is merged
+to the `master` branch, the workflow automatically:
+
+1. Runs tests
+2. Builds the production app
+3. Deploys to GitHub Pages
+
+You can view the deployment at: https://ntodorov.github.io/mathimagic
+
+### Manual Deployment (Legacy)
+
+The `npm run deploy` script is still available for manual deployments if needed.
+It builds and publishes the `build/` directory to GitHub Pages using `gh-pages`.
