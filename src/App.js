@@ -3,6 +3,7 @@ import EquationList from './EquationList';
 import ButtonAppBar from './ButtonAppBar';
 import { useUsername, useResults } from './useUsername';
 import { DEFAULT_OPERATION, OPERATION_OPTIONS, getOperationOption } from './operations';
+import packageJson from '../package.json';
 
 const PRACTICE_SECTION_ID = 'practice-section';
 
@@ -125,6 +126,7 @@ function App() {
   const reviewSession = sessions.find((session) => session.id === reviewSessionId) ?? null;
   const reviewOption = reviewSession ? getOperationOption(reviewSession.operationType) : null;
   const reviewQuestions = Array.isArray(reviewSession?.questions) ? reviewSession.questions : [];
+  const appVersion = process.env.REACT_APP_VERSION || packageJson.version;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-100 via-pink-50 to-purple-100 text-slate-900">
@@ -493,6 +495,9 @@ function App() {
           </section>
         </div>
       </main>
+      <footer className="px-4 pb-6 text-center text-xs text-slate-500">
+        Version {appVersion}
+      </footer>
     </div>
   );
 }
