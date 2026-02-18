@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Mathimagic icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="55%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="28" fill="url(#bg)"/>
+  <rect x="30" y="24" width="68" height="80" rx="12" fill="#ffffff" fill-opacity="0.95"/>
+  <rect x="38" y="34" width="52" height="14" rx="6" fill="#e9d5ff"/>
+  <g fill="#6d28d9">
+    <circle cx="44" cy="60" r="5"/>
+    <circle cx="64" cy="60" r="5"/>
+    <circle cx="84" cy="60" r="5"/>
+    <circle cx="44" cy="78" r="5"/>
+    <circle cx="64" cy="78" r="5"/>
+    <circle cx="84" cy="78" r="5"/>
+    <circle cx="44" cy="96" r="5"/>
+    <path d="M61 92h6v8h-6zM58 95h12v2H58z"/>
+    <path d="M80 93h8v2h-8zM83 90v8h2v-8z"/>
+  </g>
+</svg>

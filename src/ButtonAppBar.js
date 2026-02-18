@@ -4,9 +4,11 @@ export default function ButtonAppBar({ username, onRegenerateUsername }) {
   return (
     <header className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white shadow-lg">
       <div className="mx-auto flex w-full max-w-md items-center gap-3 px-4 py-3 sm:px-6">
-        <div className="flex h-10 w-10 items-center justify-center text-2xl" aria-hidden="true">
-          🧮
-        </div>
+        <img
+          src={`${process.env.PUBLIC_URL}/mathimagic-icon.svg`}
+          alt="Mathimagic app icon"
+          className="h-10 w-10 rounded-xl"
+        />
         <span className="text-xl font-bold tracking-tight drop-shadow-sm">
           Mathimagic
         </span>
