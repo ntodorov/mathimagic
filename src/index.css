@@ -60,6 +60,15 @@ input:focus {
   transition: transform 0.2s ease-in-out;
 }
 
+/* Strong keyboard focus visibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid #4f46e5;
+  outline-offset: 2px;
+}
+
 /* Scrollbar styling for kids */
 ::-webkit-scrollbar {
   width: 12px;
@@ -77,4 +86,25 @@ input:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #ba68c8 0%, #f06292 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:hover,
+  input:focus {
+    animation: none !important;
+    transform: none !important;
+  }
 }

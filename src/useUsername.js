@@ -1,8 +1,13 @@
 import { useState, useCallback } from 'react';
+import {
+  defaultResults,
+  readResults,
+  readSessions,
+  writeResults,
+  writeSessions,
+} from './storageSchema';
 
 const STORAGE_KEY = 'mathimagic_username';
-const RESULTS_KEY = 'mathimagic_results';
-const SESSIONS_KEY = 'mathimagic_sessions';
 
 // Funny kid-friendly username parts
 const adjectives = [
@@ -68,23 +73,8 @@ const calculateResults = (sessions) => sessions.reduce((totals, session) => {
 
 // Results storage
 export function useResults() {
-  const [results, setResultsState] = useState(() => {
-    try {
-      const saved = localStorage.getItem(RESULTS_KEY);
-      return saved ? JSON.parse(saved) : { totalCorrect: 0, totalAttempted: 0, sessionsCompleted: 0 };
-    } catch {
-      return { totalCorrect: 0, totalAttempted: 0, sessionsCompleted: 0 };
-    }
-  });
-  const [sessions, setSessionsState] = useState(() => {
-    try {
-      const saved = localStorage.getItem(SESSIONS_KEY);
-      const parsed = saved ? JSON.parse(saved) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+  const [results, setResultsState] = useState(() => readResults());
+  const [sessions, setSessionsState] = useState(() => readSessions());
 
   const recordSession = useCallback((sessionResults) => {
     const attempted = Number(sessionResults.attempted) || 0;
@@ -110,21 +100,13 @@ export function useResults() {
         totalAttempted: prev.totalAttempted + attempted,
         sessionsCompleted: prev.sessionsCompleted + 1,
       };
-      try {
-        localStorage.setItem(RESULTS_KEY, JSON.stringify(updated));
-      } catch {
-        // localStorage might not be available
-      }
+      writeResults(updated);
       return updated;
     });
 
     setSessionsState((prev) => {
       const updatedSessions = [normalizedSession, ...prev];
-      try {
-        localStorage.setItem(SESSIONS_KEY, JSON.stringify(updatedSessions));
-      } catch {
-        // localStorage might not be available
-      }
+      writeSessions(updatedSessions);
       return updatedSessions;
     });
   }, []);
@@ -141,24 +123,16 @@ export function useResults() {
       }
       const updatedResults = calculateResults(updatedSessions);
       setResultsState(updatedResults);
-      try {
-        localStorage.setItem(RESULTS_KEY, JSON.stringify(updatedResults));
-        localStorage.setItem(SESSIONS_KEY, JSON.stringify(updatedSessions));
-      } catch {
-        // localStorage might not be available
-      }
+      writeResults(updatedResults);
+      writeSessions(updatedSessions);
       return updatedSessions;
     });
   }, []);
 
   const resetResults = useCallback(() => {
-    const initial = { totalCorrect: 0, totalAttempted: 0, sessionsCompleted: 0 };
-    try {
-      localStorage.setItem(RESULTS_KEY, JSON.stringify(initial));
-      localStorage.setItem(SESSIONS_KEY, JSON.stringify([]));
-    } catch {
-      // localStorage might not be available
-    }
+    const initial = defaultResults();
+    writeResults(initial);
+    writeSessions([]);
     setResultsState(initial);
     setSessionsState([]);
   }, []);

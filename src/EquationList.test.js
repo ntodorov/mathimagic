@@ -41,7 +41,7 @@ describe('EquationList', () => {
 
     render(<EquationList onEndSession={onEndSession} />);
 
-    await user.click(screen.getByRole('button', { name: /end session/i }));
+    await user.click(screen.getByRole('button', { name: /end current session/i }));
 
     expect(onEndSession).toHaveBeenCalledWith(expect.objectContaining({
       correct: 0,
@@ -73,7 +73,7 @@ describe('EquationList', () => {
     expect(screen.getByText(/Answered/i)).toBeInTheDocument();
     expect(screen.getByText(/Progress/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /Try New Problems/i })
+      screen.getByRole('button', { name: /start a new set of practice problems/i })
     ).toBeInTheDocument();
 
     const input = screen.getByRole('textbox');
@@ -90,11 +90,27 @@ describe('EquationList', () => {
     const input = screen.getByRole('textbox', { name: /question 1/i });
     await user.type(input, '1');
 
-    const nextButton = screen.getByRole('button', { name: /next/i });
+    const nextButton = screen.getByRole('button', { name: /go to next question/i });
     await user.click(nextButton);
 
     expect(
       screen.getByRole('textbox', { name: /question 2/i })
     ).toBeInTheDocument();
+  });
+
+  test('supports arrow-key navigation for previous and next', async () => {
+    const user = userEvent.setup();
+
+    render(<EquationList />);
+
+    const firstInput = screen.getByRole('textbox', { name: /question 1/i });
+    await user.type(firstInput, '1');
+    await user.keyboard('{ArrowRight}');
+
+    expect(screen.getByRole('textbox', { name: /question 2/i })).toBeInTheDocument();
+
+    await user.keyboard('{ArrowLeft}');
+
+    expect(screen.getByRole('textbox', { name: /question 1/i })).toBeInTheDocument();
   });
 });

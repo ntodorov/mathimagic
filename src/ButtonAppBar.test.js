@@ -19,6 +19,8 @@ test('clicking username button calls regenerate function', async () => {
     <ButtonAppBar username="HappyPanda123" onRegenerateUsername={mockRegenerate} />
   );
 
-  await user.click(screen.getByRole('button', { name: /HappyPanda123/i }));
+  await user.click(
+    screen.getByRole('button', { name: /change player name\. current name happypanda123/i })
+  );
   expect(mockRegenerate).toHaveBeenCalledTimes(1);
 });

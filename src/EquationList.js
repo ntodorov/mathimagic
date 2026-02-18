@@ -1,86 +1,10 @@
 import React from 'react';
 import Equation from './Equation';
 import { DEFAULT_OPERATION, getOperationOption } from './operations';
-
-function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function createSubtractionOperation() {
-  const operation = {
-    name: 'Subtraction',
-    type: 'subtraction',
-    equations: [],
-  };
-
-  while (operation.equations.length < 10) {
-    const x = getRandomInt(2, 20);
-    const y = getRandomInt(1, x);
-    operation.equations.push({
-      x,
-      y,
-      operation: '-',
-      solution: x - y,
-      id: operation.equations.length + 1,
-    });
-  }
-  return operation;
-}
-
-function createAdditionOperation() {
-  const operation = {
-    name: 'Addition',
-    type: 'addition',
-    equations: [],
-  };
-
-  while (operation.equations.length < 10) {
-    const x = getRandomInt(1, 11);
-    const y = getRandomInt(1, 11);
-    operation.equations.push({
-      x,
-      y,
-      operation: '+',
-      solution: x + y,
-      id: operation.equations.length + 1,
-    });
-  }
-  return operation;
-}
-
-function createMultiplicationOperation() {
-  const operation = {
-    name: 'Multiplication',
-    type: 'multiplication',
-    equations: [],
-  };
-
-  while (operation.equations.length < 10) {
-    const x = getRandomInt(1, 11);
-    const y = getRandomInt(1, 11);
-    operation.equations.push({
-      x,
-      y,
-      operation: '×',
-      solution: x * y,
-      id: operation.equations.length + 1,
-    });
-  }
-  return operation;
-}
+import { generateOperationSet } from './domain/generation';
 
 function buildOperation(type) {
-  switch (type) {
-    case 'addition':
-      return createAdditionOperation();
-    case 'multiplication':
-      return createMultiplicationOperation();
-    case 'subtraction':
-    default:
-      return createSubtractionOperation();
-  }
+  return generateOperationSet({ operation: type });
 }
 
 const EquationList = ({
@@ -279,9 +203,28 @@ const EquationList = ({
     }
   }, [handleNext, handlePrev]);
 
+  const handleSectionKeyDown = React.useCallback((event) => {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      handlePrev();
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      handleNext();
+    }
+  }, [handleNext, handlePrev]);
+
   return (
     <section
       id={sectionId}
+      aria-labelledby="practice-heading"
+      onKeyDown={handleSectionKeyDown}
       className="rounded-3xl border-2 border-blue-200 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 p-4 shadow-lg"
     >
       <div className="space-y-4">
@@ -291,7 +234,7 @@ const EquationList = ({
             <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
               Practice Time!
             </p>
-            <h2 className="text-lg font-bold text-indigo-700">
+            <h2 id="practice-heading" className="text-lg font-bold text-indigo-700">
               {activeOption.label} Challenge
             </h2>
           </div>
@@ -320,14 +263,15 @@ const EquationList = ({
               <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
                 Question
               </p>
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-sm font-semibold text-slate-700" aria-live="polite">
                 {questionNumber} of {totalQuestions}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-100 bg-white px-3 py-2 text-xs font-bold text-indigo-500 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                aria-label="Go to previous question"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-100 bg-white px-3 py-2 text-xs font-bold text-indigo-500 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 focus-visible:ring-4 focus-visible:ring-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
                 onClick={handlePrev}
                 disabled={!canGoBack}
               >
@@ -336,7 +280,8 @@ const EquationList = ({
               </button>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                aria-label={isLastQuestion ? 'Finish session' : 'Go to next question'}
+                className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700 focus-visible:ring-4 focus-visible:ring-indigo-200 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
                 onClick={() => handleNext()}
                 disabled={!canAdvance}
               >
@@ -351,9 +296,9 @@ const EquationList = ({
         
         <div className="space-y-3">
           {/* Session Stats */}
-          <div className="flex items-center justify-between rounded-2xl bg-white/60 p-3">
+          <div className="flex items-center justify-between rounded-2xl bg-white/60 p-3" aria-live="polite">
             <div className="flex items-center gap-2">
-              <span className="text-xl">📝</span>
+              <span className="text-xl" aria-hidden="true">📝</span>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-amber-600">
                   Answered
@@ -364,7 +309,7 @@ const EquationList = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xl">🎯</span>
+              <span className="text-xl" aria-hidden="true">🎯</span>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-purple-600">
                   Progress
@@ -393,8 +338,8 @@ const EquationList = ({
 
           {/* Completion Message */}
           {sessionCompleted && (
-            <div className="rounded-2xl bg-gradient-to-r from-green-100 to-teal-100 p-4 text-center border-2 border-green-300">
-              <div className="text-4xl mb-2">🎉</div>
+            <div className="rounded-2xl border-2 border-green-300 bg-gradient-to-r from-green-100 to-teal-100 p-4 text-center" role="status" aria-live="polite">
+              <div className="text-4xl mb-2" aria-hidden="true">🎉</div>
               <p className="text-lg font-bold text-green-700">
                 All questions answered!
               </p>
@@ -407,18 +352,20 @@ const EquationList = ({
           <div className="space-y-2">
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 rounded-full border-2 border-rose-200 bg-white/80 px-4 py-3 text-base font-bold text-rose-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-200"
+              aria-label="End current session"
+              className="w-full flex items-center justify-center gap-2 rounded-full border-2 border-rose-200 bg-white/80 px-4 py-3 text-base font-bold text-rose-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700 focus-visible:ring-4 focus-visible:ring-rose-200"
               onClick={handleEndSession}
             >
-              <span className="text-xl">🏁</span>
+              <span className="text-xl" aria-hidden="true">🏁</span>
               End Session
             </button>
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-400 to-teal-400 px-4 py-3 text-base font-bold text-white shadow-md transition transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-200"
+              aria-label="Start a new set of practice problems"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-400 to-teal-400 px-4 py-3 text-base font-bold text-white shadow-md transition transform hover:scale-105 hover:shadow-lg focus-visible:ring-4 focus-visible:ring-green-200"
               onClick={handleReset}
             >
-              <span className="text-xl">🔄</span>
+              <span className="text-xl" aria-hidden="true">🔄</span>
               Try New Problems!
             </button>
           </div>

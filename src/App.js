@@ -16,7 +16,26 @@ function App() {
   const [reviewSessionId, setReviewSessionId] = React.useState(null);
   const sessionFinalizedRef = React.useRef(false);
   const scrollTimeoutRef = React.useRef(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
   const sessionActive = Boolean(activeSession);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleMotionPreference = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    handleMotionPreference();
+    mediaQuery.addEventListener?.('change', handleMotionPreference);
+
+    return () => {
+      mediaQuery.removeEventListener?.('change', handleMotionPreference);
+    };
+  }, []);
 
   const handleStartPractice = React.useCallback(() => {
     const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -34,9 +53,12 @@ function App() {
     }
     scrollTimeoutRef.current = setTimeout(() => {
       const practiceSection = document.getElementById(PRACTICE_SECTION_ID);
-      practiceSection?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      practiceSection?.scrollIntoView?.({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
     }, 100);
-  }, [selectedOperation]);
+  }, [selectedOperation, prefersReducedMotion]);
 
   React.useEffect(() => () => {
     if (scrollTimeoutRef.current) {
@@ -110,11 +132,14 @@ function App() {
       <main className="mx-auto w-full max-w-md px-4 pb-12 pt-6 sm:px-6">
         <div className="space-y-6">
           {/* Welcome Section */}
-          <section className="rounded-3xl border-2 border-purple-200 bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-6 shadow-lg">
+          <section
+            aria-labelledby="welcome-heading"
+            className="rounded-3xl border-2 border-purple-200 bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-6 shadow-lg"
+          >
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="text-4xl">✨🌟✨</div>
-                <h1 className="text-3xl font-bold tracking-tight text-purple-700">
+                <h1 id="welcome-heading" className="text-3xl font-bold tracking-tight text-purple-700">
                   Hey, {username.replace(/[0-9]/g, '')}!
                 </h1>
                 <p className="text-lg text-purple-600">
@@ -147,6 +172,7 @@ function App() {
                           type="button"
                           onClick={() => setSelectedOperation(option.id)}
                           aria-pressed={isActive}
+                          aria-label={`Practice ${option.label}`}
                           className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-bold transition ${
                             isActive
                               ? 'border-indigo-400 bg-white text-indigo-700 shadow-sm'
@@ -179,7 +205,7 @@ function App() {
               {!sessionActive && (
                 <button
                   type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 px-5 py-4 text-lg font-bold text-white shadow-lg transition transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-purple-300"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 px-5 py-4 text-lg font-bold text-white shadow-lg transition transform hover:scale-105 hover:shadow-xl focus-visible:ring-4 focus-visible:ring-purple-300"
                   onClick={handleStartPractice}
                   aria-controls={PRACTICE_SECTION_ID}
                 >
@@ -191,11 +217,14 @@ function App() {
           </section>
 
           {/* Stats Section */}
-          <section className="rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-orange-100 to-yellow-100 p-4 shadow-md">
+          <section
+            aria-labelledby="progress-heading"
+            className="rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-orange-100 to-yellow-100 p-4 shadow-md"
+          >
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🏅</span>
-                <p className="text-sm font-bold uppercase tracking-wide text-orange-600">
+                <p id="progress-heading" className="text-sm font-bold uppercase tracking-wide text-orange-600">
                   Your Progress
                 </p>
               </div>
@@ -260,14 +289,17 @@ function App() {
             />
           )}
 
-          <section className="rounded-3xl border-2 border-slate-200 bg-white/80 p-4 shadow-md">
+          <section
+            aria-labelledby="history-heading"
+            className="rounded-3xl border-2 border-slate-200 bg-white/80 p-4 shadow-md"
+          >
             <div className="flex items-center gap-2">
               <span className="text-2xl">📚</span>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Session History
                 </p>
-                <h2 className="text-lg font-bold text-slate-700">
+                <h2 id="history-heading" className="text-lg font-bold text-slate-700">
                   Past Sessions
                 </h2>
               </div>
@@ -438,6 +470,7 @@ function App() {
                             type="button"
                             onClick={() => handleReviewToggle(session.id)}
                             aria-pressed={isReviewing}
+                            aria-label={`${isReviewing ? 'Close review for' : 'Review answers for'} ${option.label} session ${timestamp || ''}`.trim()}
                             className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
                           >
                             {isReviewing ? 'Close Review' : 'Review Answers'}
@@ -445,6 +478,7 @@ function App() {
                           <button
                             type="button"
                             onClick={() => handleDeleteSession(session.id)}
+                            aria-label={`Delete ${option.label} session ${timestamp || ''}`.trim()}
                             className="rounded-full border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm transition hover:border-rose-300 hover:text-rose-700"
                           >
                             Delete

@@ -16,7 +16,11 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+  writable: true,
+});
 
 beforeEach(() => {
   localStorageMock.clear();
@@ -51,7 +55,7 @@ test('start practice shows equations and moves focus to first question', async (
   });
 
   const firstInput = screen.getByRole('textbox', {
-    name: /answer for question 1$/i,
+    name: /answer for question 1/i,
   });
 
   await waitFor(() => {
@@ -73,7 +77,7 @@ test('locks challenge selection during a session', async () => {
 
   expect(screen.queryByText(/Choose a Challenge/i)).not.toBeInTheDocument();
 
-  await user.click(screen.getByRole('button', { name: /end session/i }));
+  await user.click(screen.getByRole('button', { name: /end current session/i }));
 
   await waitFor(() => {
     expect(screen.getByText(/Choose a Challenge/i)).toBeInTheDocument();
@@ -90,11 +94,11 @@ test('records ended sessions in the history list', async () => {
     await user.click(screen.getByRole('button', { name: /start practice/i }));
 
     const firstInput = await screen.findByRole('textbox', {
-      name: /answer for question 1$/i,
+      name: /answer for question 1/i,
     });
     await user.type(firstInput, '1');
 
-    await user.click(screen.getByRole('button', { name: /end session/i }));
+    await user.click(screen.getByRole('button', { name: /end current session/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Past Sessions/i)).toBeInTheDocument();
@@ -116,7 +120,7 @@ test('does not save sessions without answers', async () => {
 
   await user.click(screen.getByRole('button', { name: /start practice/i }));
 
-  await user.click(screen.getByRole('button', { name: /end session/i }));
+  await user.click(screen.getByRole('button', { name: /end current session/i }));
 
   await waitFor(() => {
     expect(screen.queryByText(/Subtraction Session/i)).not.toBeInTheDocument();
@@ -135,11 +139,11 @@ test('deletes a session from the history list', async () => {
     await user.click(screen.getByRole('button', { name: /start practice/i }));
 
     const firstInput = await screen.findByRole('textbox', {
-      name: /answer for question 1$/i,
+      name: /answer for question 1/i,
     });
     await user.type(firstInput, '1');
 
-    await user.click(screen.getByRole('button', { name: /end session/i }));
+    await user.click(screen.getByRole('button', { name: /end current session/i }));
 
     expect(await screen.findByText(/Subtraction Session/i)).toBeInTheDocument();
 
@@ -165,11 +169,11 @@ test('reviews past sessions in read-only mode', async () => {
     await user.click(screen.getByRole('button', { name: /start practice/i }));
 
     const firstInput = await screen.findByRole('textbox', {
-      name: /answer for question 1$/i,
+      name: /answer for question 1/i,
     });
     await user.type(firstInput, '1');
 
-    await user.click(screen.getByRole('button', { name: /end session/i }));
+    await user.click(screen.getByRole('button', { name: /end current session/i }));
 
     const reviewButton = await screen.findByRole('button', { name: /review answers/i });
     await user.click(reviewButton);
@@ -181,5 +185,34 @@ test('reviews past sessions in read-only mode', async () => {
     expect(screen.queryAllByRole('textbox')).toHaveLength(0);
   } finally {
     randomSpy.mockRestore();
+  }
+});
+
+test('uses auto scrolling when reduced motion is preferred', async () => {
+  const user = userEvent.setup();
+  const scrollIntoViewMock = jest.fn();
+  const originalMatchMedia = window.matchMedia;
+  const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
+
+  window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+  window.matchMedia = jest.fn().mockReturnValue({
+    matches: true,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  });
+
+  try {
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+    await waitFor(() => {
+      expect(scrollIntoViewMock).toHaveBeenCalledWith(
+        expect.objectContaining({ behavior: 'auto', block: 'start' })
+      );
+    });
+  } finally {
+    window.matchMedia = originalMatchMedia;
+    window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
   }
 });
