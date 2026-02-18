@@ -1,10 +1,18 @@
 import React from 'react';
 import Equation from './Equation';
 import { DEFAULT_OPERATION, getOperationOption } from './operations';
-import { generateOperationSet } from './domain/generation';
+import {
+  DEFAULT_DIFFICULTY,
+  DEFAULT_GRADE_BAND,
+  generateOperationSet,
+} from './domain/generation';
 
-function buildOperation(type) {
-  return generateOperationSet({ operation: type });
+function buildOperation(type, gradeBand, difficulty) {
+  return generateOperationSet({
+    operation: type,
+    gradeBand,
+    difficulty,
+  });
 }
 
 const EquationList = ({
@@ -14,8 +22,10 @@ const EquationList = ({
   onNewSession,
   onEndSession,
   operationType = DEFAULT_OPERATION,
+  gradeBand = DEFAULT_GRADE_BAND,
+  difficulty = DEFAULT_DIFFICULTY,
 }) => {
-  const [operation, setOperation] = React.useState(() => buildOperation(operationType));
+  const [operation, setOperation] = React.useState(() => buildOperation(operationType, gradeBand, difficulty));
   const [answers, setAnswers] = React.useState({});
   const [sessionCompleted, setSessionCompleted] = React.useState(false);
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -36,14 +46,16 @@ const EquationList = ({
     }, 100);
   }, [focusInput]);
 
-  const resetSession = React.useCallback((nextOperationType) => {
+  const resetSession = React.useCallback((nextOperationType, nextGradeBand, nextDifficulty) => {
     const resolvedType = nextOperationType ?? operationType;
-    setOperation(buildOperation(resolvedType));
+    const resolvedGradeBand = nextGradeBand ?? gradeBand;
+    const resolvedDifficulty = nextDifficulty ?? difficulty;
+    setOperation(buildOperation(resolvedType, resolvedGradeBand, resolvedDifficulty));
     setAnswers({});
     setSessionCompleted(false);
     setCurrentIndex(0);
     scheduleFocus();
-  }, [operationType, scheduleFocus]);
+  }, [operationType, gradeBand, difficulty, scheduleFocus]);
 
   React.useEffect(() => () => {
     if (focusTimeoutRef.current) {
@@ -99,8 +111,8 @@ const EquationList = ({
   }, [focusSignal, resetSession]);
 
   React.useEffect(() => {
-    resetSession(operationType);
-  }, [operationType, resetSession]);
+    resetSession(operationType, gradeBand, difficulty);
+  }, [operationType, gradeBand, difficulty, resetSession]);
 
   const totalQuestions = operation.equations.length;
   const answerEntries = Object.values(answers);

@@ -3,6 +3,12 @@ import EquationList from './EquationList';
 import ButtonAppBar from './ButtonAppBar';
 import { useUsername, useResults } from './useUsername';
 import { DEFAULT_OPERATION, OPERATION_OPTIONS, getOperationOption } from './operations';
+import {
+  DEFAULT_DIFFICULTY,
+  DEFAULT_GRADE_BAND,
+  DIFFICULTY_OPTIONS,
+  GRADE_BAND_OPTIONS,
+} from './domain/generation';
 import packageJson from '../package.json';
 
 const PRACTICE_SECTION_ID = 'practice-section';
@@ -11,6 +17,8 @@ function App() {
   const { username, regenerateUsername } = useUsername();
   const { results, sessions, recordSession, deleteSession } = useResults();
   const [selectedOperation, setSelectedOperation] = React.useState(DEFAULT_OPERATION);
+  const [selectedGradeBand, setSelectedGradeBand] = React.useState(DEFAULT_GRADE_BAND);
+  const [selectedDifficulty, setSelectedDifficulty] = React.useState(DEFAULT_DIFFICULTY);
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
   const [currentSessionStats, setCurrentSessionStats] = React.useState({ answered: 0, total: 10 });
@@ -45,6 +53,8 @@ function App() {
     setActiveSession({
       id: sessionId,
       operationType: selectedOperation,
+      gradeBand: selectedGradeBand,
+      difficulty: selectedDifficulty,
       startedAt: new Date().toISOString(),
     });
     setSessionKey((prev) => prev + 1);
@@ -59,7 +69,7 @@ function App() {
         block: 'start',
       });
     }, 100);
-  }, [selectedOperation, prefersReducedMotion]);
+  }, [selectedOperation, selectedGradeBand, selectedDifficulty, prefersReducedMotion]);
 
   React.useEffect(() => () => {
     if (scrollTimeoutRef.current) {
@@ -78,6 +88,8 @@ function App() {
         recordSession({
           id: activeSession.id,
           operationType: activeSession.operationType,
+          gradeBand: activeSession.gradeBand,
+          difficulty: activeSession.difficulty,
           startedAt: activeSession.startedAt,
           endedAt: new Date().toISOString(),
           correct: sessionResults.correct,
@@ -122,6 +134,9 @@ function App() {
       minute: '2-digit',
     });
   };
+
+  const getDifficultyLabel = (value) => DIFFICULTY_OPTIONS.find((option) => option.id === value)?.label ?? value;
+  const getGradeBandLabel = (value) => GRADE_BAND_OPTIONS.find((option) => option.id === value)?.label ?? value;
 
   const reviewSession = sessions.find((session) => session.id === reviewSessionId) ?? null;
   const reviewOption = reviewSession ? getOperationOption(reviewSession.operationType) : null;
@@ -187,20 +202,62 @@ function App() {
                       );
                     })}
                   </div>
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                        Grade
+                      </span>
+                      <select
+                        value={selectedGradeBand}
+                        onChange={(event) => setSelectedGradeBand(event.target.value)}
+                        className="rounded-xl border-2 border-indigo-200 bg-white/90 px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm focus:border-indigo-300 focus:outline-none"
+                        aria-label="Select grade band"
+                      >
+                        {GRADE_BAND_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>{option.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                        Difficulty
+                      </span>
+                      <select
+                        value={selectedDifficulty}
+                        onChange={(event) => setSelectedDifficulty(event.target.value)}
+                        className="rounded-xl border-2 border-indigo-200 bg-white/90 px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm focus:border-indigo-300 focus:outline-none"
+                        aria-label="Select difficulty"
+                      >
+                        {DIFFICULTY_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>{option.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-2xl bg-white/70 p-3">
                   <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
                     Challenge Locked
                   </p>
-                  <div className="mt-2 flex items-center justify-between rounded-xl border border-indigo-200 bg-white/80 px-3 py-2">
-                    <div className="flex items-center gap-2 text-indigo-700">
-                      <span className="text-base">{activeOption.symbol}</span>
-                      <span className="text-sm font-bold">{activeOption.label}</span>
+                  <div className="mt-2 space-y-2 rounded-xl border border-indigo-200 bg-white/80 px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-indigo-700">
+                        <span className="text-base">{activeOption.symbol}</span>
+                        <span className="text-sm font-bold">{activeOption.label}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-indigo-500">
+                        End session to change
+                      </span>
                     </div>
-                    <span className="text-xs font-semibold text-indigo-500">
-                      End session to change
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-1 text-xs font-semibold text-indigo-600">
+                        Grade {getGradeBandLabel(activeSession?.gradeBand ?? selectedGradeBand)}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-1 text-xs font-semibold text-indigo-600">
+                        {getDifficultyLabel(activeSession?.difficulty ?? selectedDifficulty)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -254,9 +311,17 @@ function App() {
                     <p className="text-xs font-bold uppercase tracking-wide text-green-600">
                       Current Session
                     </p>
-                    <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
-                      {activeOption.label}
-                    </span>
+                    <div className="flex flex-wrap items-center justify-end gap-1">
+                      <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                        {activeOption.label}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                        {getGradeBandLabel(activeSession?.gradeBand ?? selectedGradeBand)}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                        {getDifficultyLabel(activeSession?.difficulty ?? selectedDifficulty)}
+                      </span>
+                    </div>
                   </div>
                   <div
                     className="h-3 w-full overflow-hidden rounded-full bg-green-100"
@@ -285,6 +350,8 @@ function App() {
               sectionId={PRACTICE_SECTION_ID}
               focusSignal={sessionKey}
               operationType={activeSession?.operationType ?? selectedOperation}
+              gradeBand={activeSession?.gradeBand ?? selectedGradeBand}
+              difficulty={activeSession?.difficulty ?? selectedDifficulty}
               onProgress={handleSessionProgress}
               onNewSession={handleStartPractice}
               onEndSession={handleEndSession}
@@ -347,6 +414,18 @@ function App() {
                       <p className="text-sm font-bold text-slate-700">
                         {reviewOption?.label ?? 'Session'} Summary
                       </p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {reviewSession?.gradeBand && (
+                          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                            Grade {getGradeBandLabel(reviewSession.gradeBand)}
+                          </span>
+                        )}
+                        {reviewSession?.difficulty && (
+                          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                            {getDifficultyLabel(reviewSession.difficulty)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-indigo-600">
@@ -453,6 +532,18 @@ function App() {
                           {timestamp && (
                             <p className="text-xs text-slate-500">{timestamp}</p>
                           )}
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {session.gradeBand && (
+                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                                Grade {getGradeBandLabel(session.gradeBand)}
+                              </span>
+                            )}
+                            {session.difficulty && (
+                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                                {getDifficultyLabel(session.difficulty)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold text-indigo-600">

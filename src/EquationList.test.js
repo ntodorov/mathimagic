@@ -35,6 +35,18 @@ describe('EquationList', () => {
     expect(screen.getAllByText(/1\s×\s1\s=/)).toHaveLength(1);
   });
 
+  test('uses grade and difficulty profile settings when generating equations', () => {
+    render(
+      <EquationList
+        operationType="multiplication"
+        gradeBand="k-2"
+        difficulty="hard"
+      />
+    );
+
+    expect(screen.getAllByText(/5\s×\s5\s=/)).toHaveLength(1);
+  });
+
   test('calls onEndSession with current stats', async () => {
     const user = userEvent.setup();
     const onEndSession = jest.fn();

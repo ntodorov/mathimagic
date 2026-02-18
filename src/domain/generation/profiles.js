@@ -2,6 +2,16 @@ const DEFAULT_GRADE_BAND = 'k-2';
 const DEFAULT_DIFFICULTY = 'easy';
 const DEFAULT_QUESTION_COUNT = 10;
 
+const GRADE_BAND_OPTIONS = [
+  { id: 'k-2', label: 'K-2' },
+];
+
+const DIFFICULTY_OPTIONS = [
+  { id: 'easy', label: 'Easy' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'hard', label: 'Hard' },
+];
+
 const OPERATION_PROFILE_CONFIG = {
   addition: {
     'k-2': {
@@ -92,6 +102,8 @@ module.exports = {
   DEFAULT_GRADE_BAND,
   DEFAULT_DIFFICULTY,
   DEFAULT_QUESTION_COUNT,
+  GRADE_BAND_OPTIONS,
+  DIFFICULTY_OPTIONS,
   OPERATION_PROFILE_CONFIG,
   resolveProfile,
 };

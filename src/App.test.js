@@ -42,6 +42,24 @@ test('renders app chrome and welcome section', () => {
   expect(screen.queryAllByRole('textbox')).toHaveLength(0);
 });
 
+test('applies selected difficulty when starting practice', async () => {
+  const user = userEvent.setup();
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+  try {
+    render(<App />);
+
+    await user.selectOptions(screen.getByLabelText(/select difficulty/i), 'hard');
+    await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/15\s-\s1\s=/)).toBeInTheDocument();
+    });
+  } finally {
+    randomSpy.mockRestore();
+  }
+});
+
 test('start practice shows equations and moves focus to first question', async () => {
   const user = userEvent.setup();
   render(<App />);
