@@ -9,6 +9,7 @@ describe('generation profiles', () => {
   test('defines profile entries for all supported operations', () => {
     expect(Object.keys(OPERATION_PROFILE_CONFIG).sort()).toEqual([
       'addition',
+      'division',
       'multiplication',
       'subtraction',
     ]);
@@ -30,7 +31,17 @@ describe('generation profiles', () => {
     expect(profile).toEqual(defaultProfile);
   });
 
+  test('resolves division profile with divisor and quotient ranges', () => {
+    const profile = resolveProfile('division', 'k-2', 'easy');
+    expect(profile).toEqual(expect.objectContaining({
+      name: 'Division',
+      symbol: '÷',
+      divisor: { min: 1, max: 5 },
+      quotient: { min: 1, max: 5 },
+    }));
+  });
+
   test('throws for unknown operation', () => {
-    expect(() => resolveProfile('division')).toThrow(/Unknown operation/);
+    expect(() => resolveProfile('modulo')).toThrow(/Unknown operation/);
   });
 });

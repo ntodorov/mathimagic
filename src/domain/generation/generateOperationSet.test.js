@@ -56,4 +56,31 @@ describe('generateOperationSet', () => {
 
     expect(result.equations.some((eq) => eq.solution < 0)).toBe(true);
   });
+
+  test('generates division equations with clean integer answers', () => {
+    const result = generateOperationSet({ operation: 'division', questionCount: 20 });
+
+    result.equations.forEach((eq) => {
+      expect(eq.operation).toBe('÷');
+      expect(Number.isInteger(eq.solution)).toBe(true);
+      expect(eq.solution).toBeGreaterThanOrEqual(1);
+      expect(eq.x).toBe(eq.y * eq.solution);
+    });
+  });
+
+  test('creates deterministic division output with injected rng', () => {
+    const rng = jest.fn(() => 0);
+    const result = generateOperationSet({ operation: 'division', questionCount: 3, rng });
+
+    expect(result).toEqual({
+      name: 'Division',
+      type: 'division',
+      profile: { gradeBand: 'k-2', difficulty: 'easy' },
+      equations: [
+        { id: 1, x: 1, y: 1, operation: '÷', solution: 1 },
+        { id: 2, x: 1, y: 1, operation: '÷', solution: 1 },
+        { id: 3, x: 1, y: 1, operation: '÷', solution: 1 },
+      ],
+    });
+  });
 });
