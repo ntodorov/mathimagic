@@ -53,6 +53,7 @@
 - Contrast AA or better.
 - Numeric keypad on mobile for input.
 - Clear focus states and labels.
+- Selected options should be visually obvious (strong outline + explicit selected label).
 - Enter key hints reflect next/done when moving through questions.
 
 ### Success Metrics

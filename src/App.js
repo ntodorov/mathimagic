@@ -185,7 +185,7 @@ function App() {
                       const isActive = option.id === selectedOperation;
                       const colorMap = {
                         green: {
-                          active: 'border-green-400 bg-green-50 ring-2 ring-green-200',
+                          active: 'border-green-500 bg-green-50 ring-4 ring-green-200 shadow-md scale-[1.02]',
                           idle: 'border-green-200 bg-white/80 hover:border-green-300 hover:bg-green-50/50',
                           symbol: 'bg-green-100 text-green-600',
                           symbolActive: 'bg-green-500 text-white',
@@ -193,7 +193,7 @@ function App() {
                           textIdle: 'text-green-600/80',
                         },
                         rose: {
-                          active: 'border-rose-400 bg-rose-50 ring-2 ring-rose-200',
+                          active: 'border-rose-500 bg-rose-50 ring-4 ring-rose-200 shadow-md scale-[1.02]',
                           idle: 'border-rose-200 bg-white/80 hover:border-rose-300 hover:bg-rose-50/50',
                           symbol: 'bg-rose-100 text-rose-600',
                           symbolActive: 'bg-rose-500 text-white',
@@ -201,7 +201,7 @@ function App() {
                           textIdle: 'text-rose-600/80',
                         },
                         amber: {
-                          active: 'border-amber-400 bg-amber-50 ring-2 ring-amber-200',
+                          active: 'border-amber-500 bg-amber-50 ring-4 ring-amber-200 shadow-md scale-[1.02]',
                           idle: 'border-amber-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50',
                           symbol: 'bg-amber-100 text-amber-600',
                           symbolActive: 'bg-amber-500 text-white',
@@ -209,7 +209,7 @@ function App() {
                           textIdle: 'text-amber-600/80',
                         },
                         sky: {
-                          active: 'border-sky-400 bg-sky-50 ring-2 ring-sky-200',
+                          active: 'border-sky-500 bg-sky-50 ring-4 ring-sky-200 shadow-md scale-[1.02]',
                           idle: 'border-sky-200 bg-white/80 hover:border-sky-300 hover:bg-sky-50/50',
                           symbol: 'bg-sky-100 text-sky-600',
                           symbolActive: 'bg-sky-500 text-white',
@@ -239,6 +239,11 @@ function App() {
                           <span className={`text-xs font-bold ${isActive ? colors.text : colors.textIdle}`}>
                             {option.label}
                           </span>
+                          {isActive && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600">
+                              ✓ Selected
+                            </span>
+                          )}
                         </button>
                       );
                     })}
