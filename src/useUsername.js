@@ -91,6 +91,7 @@ export function useResults() {
       completed: Boolean(sessionResults.completed),
       startedAt: sessionResults.startedAt ?? null,
       endedAt: sessionResults.endedAt ?? null,
+      durationMs: Math.max(0, Number(sessionResults.durationMs) || 0),
       questions: Array.isArray(sessionResults.questions) ? sessionResults.questions : [],
     };
 

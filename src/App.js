@@ -85,13 +85,22 @@ function App() {
     if (activeSession && !sessionFinalizedRef.current) {
       const attemptedCount = Number(sessionResults.attempted) || 0;
       if (attemptedCount > 0) {
+        const endedAtIso = sessionResults.endedAt ?? new Date().toISOString();
+        const startedAtIso = activeSession.startedAt ?? sessionResults.startedAt ?? null;
+        const startedAtMs = startedAtIso ? new Date(startedAtIso).getTime() : NaN;
+        const endedAtMs = new Date(endedAtIso).getTime();
+        const computedDurationMs = Number.isFinite(startedAtMs) && Number.isFinite(endedAtMs)
+          ? Math.max(0, endedAtMs - startedAtMs)
+          : null;
+
         recordSession({
           id: activeSession.id,
           operationType: activeSession.operationType,
           gradeBand: activeSession.gradeBand,
           difficulty: activeSession.difficulty,
-          startedAt: activeSession.startedAt,
-          endedAt: new Date().toISOString(),
+          startedAt: startedAtIso,
+          endedAt: endedAtIso,
+          durationMs: computedDurationMs ?? sessionResults.durationMs ?? null,
           correct: sessionResults.correct,
           attempted: attemptedCount,
           total: sessionResults.total ?? attemptedCount,

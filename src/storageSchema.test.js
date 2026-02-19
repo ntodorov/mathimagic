@@ -49,6 +49,7 @@ describe('storage schema versioning', () => {
         completed: false,
         startedAt: null,
         endedAt: null,
+        durationMs: 0,
         questions: [],
       },
     ]);
@@ -72,6 +73,7 @@ describe('storage schema versioning', () => {
         completed: false,
         startedAt: null,
         endedAt: null,
+        durationMs: 0,
         questions: [],
       },
     ]);
@@ -113,7 +115,10 @@ describe('storage schema versioning', () => {
     );
     storage.setItem(
       storageKeys.SESSIONS_KEY,
-      JSON.stringify({ version: getStorageSchemaVersion(), data: [{ id: 's2', questions: [null, { prompt: '2+2' }] }] })
+      JSON.stringify({
+        version: getStorageSchemaVersion(),
+        data: [{ id: 's2', durationMs: -1, questions: [null, { prompt: '2+2', perQuestionDurationMs: -8 }] }],
+      })
     );
 
     expect(readResults(storage)).toEqual({ totalCorrect: 0, totalAttempted: 0, sessionsCompleted: 0 });
@@ -127,7 +132,8 @@ describe('storage schema versioning', () => {
         completed: false,
         startedAt: null,
         endedAt: null,
-        questions: [{ prompt: '2+2' }],
+        durationMs: 0,
+        questions: [{ prompt: '2+2', perQuestionDurationMs: 0, firstShownAt: null }],
       },
     ]);
   });

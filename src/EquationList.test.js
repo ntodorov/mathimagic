@@ -67,6 +67,9 @@ describe('EquationList', () => {
       attempted: 0,
       total: 10,
       completed: false,
+      startedAt: expect.any(String),
+      endedAt: expect.any(String),
+      durationMs: expect.any(Number),
       questions: expect.any(Array),
     }));
 
@@ -81,6 +84,8 @@ describe('EquationList', () => {
       answer: '',
       hasAnswer: false,
       isCorrect: false,
+      firstShownAt: expect.any(String),
+      perQuestionDurationMs: expect.any(Number),
     }));
   });
 
@@ -131,5 +136,30 @@ describe('EquationList', () => {
     await user.keyboard('{ArrowLeft}');
 
     expect(screen.getByRole('textbox', { name: /question 1/i })).toBeInTheDocument();
+  });
+
+  test('captures per-question timing and session duration', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const onEndSession = jest.fn();
+
+    render(<EquationList onEndSession={onEndSession} />);
+
+    const input = screen.getByRole('textbox', { name: /question 1/i });
+    await user.type(input, '1');
+
+    jest.advanceTimersByTime(1200);
+    await user.click(screen.getByRole('button', { name: /go to next question/i }));
+    jest.advanceTimersByTime(800);
+
+    await user.click(screen.getByRole('button', { name: /end current session/i }));
+
+    const [payload] = onEndSession.mock.calls[0];
+    expect(payload.durationMs).toBeGreaterThanOrEqual(2000);
+    expect(payload.questions[0].perQuestionDurationMs).toBeGreaterThanOrEqual(1200);
+
+    jest.useRealTimers();
   });
 });

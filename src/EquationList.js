@@ -32,6 +32,8 @@ const EquationList = ({
   const activeInputRef = React.useRef(null);
   const focusTimeoutRef = React.useRef(null);
   const swipeStartRef = React.useRef({ x: 0, y: 0, ignore: false });
+  const sessionStartedAtMsRef = React.useRef(Date.now());
+  const questionTimingRef = React.useRef({});
 
   const focusInput = React.useCallback(() => {
     activeInputRef.current?.focus({ preventScroll: true });
@@ -46,16 +48,59 @@ const EquationList = ({
     }, 100);
   }, [focusInput]);
 
+  const activateQuestionTiming = React.useCallback((questionId) => {
+    if (questionId == null) {
+      return;
+    }
+
+    const now = Date.now();
+    const entry = questionTimingRef.current[questionId] ?? { durationMs: 0, firstShownAt: null, lastShownAt: null };
+
+    if (!entry.firstShownAt) {
+      entry.firstShownAt = new Date(now).toISOString();
+    }
+
+    entry.lastShownAt = now;
+    questionTimingRef.current[questionId] = entry;
+  }, []);
+
+  const stopQuestionTiming = React.useCallback((questionId) => {
+    if (questionId == null) {
+      return;
+    }
+
+    const now = Date.now();
+    const entry = questionTimingRef.current[questionId] ?? { durationMs: 0, firstShownAt: null, lastShownAt: null };
+
+    if (typeof entry.lastShownAt === 'number') {
+      entry.durationMs += Math.max(0, now - entry.lastShownAt);
+      entry.lastShownAt = null;
+    }
+
+    questionTimingRef.current[questionId] = entry;
+  }, []);
+
   const resetSession = React.useCallback((nextOperationType, nextGradeBand, nextDifficulty) => {
     const resolvedType = nextOperationType ?? operationType;
     const resolvedGradeBand = nextGradeBand ?? gradeBand;
     const resolvedDifficulty = nextDifficulty ?? difficulty;
-    setOperation(buildOperation(resolvedType, resolvedGradeBand, resolvedDifficulty));
+    const nextOperation = buildOperation(resolvedType, resolvedGradeBand, resolvedDifficulty);
+
+    sessionStartedAtMsRef.current = Date.now();
+    questionTimingRef.current = {};
+
+    setOperation(nextOperation);
     setAnswers({});
     setSessionCompleted(false);
     setCurrentIndex(0);
+
+    const firstEquation = nextOperation.equations[0];
+    if (firstEquation) {
+      activateQuestionTiming(firstEquation.id);
+    }
+
     scheduleFocus();
-  }, [operationType, gradeBand, difficulty, scheduleFocus]);
+  }, [operationType, gradeBand, difficulty, scheduleFocus, activateQuestionTiming]);
 
   React.useEffect(() => () => {
     if (focusTimeoutRef.current) {
@@ -66,6 +111,13 @@ const EquationList = ({
   React.useEffect(() => {
     scheduleFocus();
   }, [currentIndex, scheduleFocus]);
+
+  React.useEffect(() => {
+    const activeEquation = operation.equations[currentIndex];
+    if (activeEquation) {
+      activateQuestionTiming(activeEquation.id);
+    }
+  }, [operation.equations, currentIndex, activateQuestionTiming]);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
     setAnswers((prev) => ({
@@ -82,6 +134,9 @@ const EquationList = ({
       const hasAnswer = trimmedValue !== '';
       const isCorrect = hasAnswer && Number(trimmedValue) === eq.solution;
 
+      const timing = questionTimingRef.current[eq.id] ?? {};
+      const perQuestionDurationMs = Math.max(0, Math.round(Number(timing.durationMs) || 0));
+
       return {
         id: eq.id,
         x: eq.x,
@@ -91,6 +146,8 @@ const EquationList = ({
         answer: trimmedValue,
         hasAnswer,
         isCorrect,
+        firstShownAt: timing.firstShownAt ?? null,
+        perQuestionDurationMs,
       };
     })
   ), [operation.equations, answers]);
@@ -141,15 +198,24 @@ const EquationList = ({
       return;
     }
 
+    const activeEquation = operation.equations[currentIndex];
+    if (activeEquation) {
+      stopQuestionTiming(activeEquation.id);
+    }
+
+    const endedAtMs = Date.now();
     const sessionQuestions = buildSessionQuestions();
     onEndSession({
       correct: correctCount,
       attempted: attemptedCount,
       total: totalQuestions,
       completed: attemptedCount === totalQuestions && totalQuestions > 0,
+      startedAt: new Date(sessionStartedAtMsRef.current).toISOString(),
+      endedAt: new Date(endedAtMs).toISOString(),
+      durationMs: Math.max(0, endedAtMs - sessionStartedAtMsRef.current),
       questions: sessionQuestions,
     });
-  }, [onEndSession, correctCount, attemptedCount, totalQuestions, buildSessionQuestions]);
+  }, [onEndSession, correctCount, attemptedCount, totalQuestions, buildSessionQuestions, stopQuestionTiming, operation.equations, currentIndex]);
   const currentEquation = operation.equations[currentIndex];
   const currentAnswer = currentEquation ? answers[currentEquation.id] : null;
   const currentAnswerValue = currentAnswer?.value ?? '';
@@ -167,18 +233,22 @@ const EquationList = ({
       focusInput();
       return;
     }
+    stopQuestionTiming(currentEquation.id);
     if (isLastQuestion) {
       handleEndSession();
       return;
     }
     focusInput();
     setCurrentIndex((prev) => Math.min(prev + 1, totalQuestions - 1));
-  }, [currentEquation, currentAnswer, totalQuestions, focusInput, isLastQuestion, handleEndSession]);
+  }, [currentEquation, currentAnswer, totalQuestions, focusInput, isLastQuestion, handleEndSession, stopQuestionTiming]);
 
   const handlePrev = React.useCallback(() => {
+    if (currentEquation) {
+      stopQuestionTiming(currentEquation.id);
+    }
     focusInput();
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  }, [focusInput]);
+  }, [focusInput, currentEquation, stopQuestionTiming]);
 
   const handleSwipeStart = React.useCallback((event) => {
     const touch = event.touches[0];

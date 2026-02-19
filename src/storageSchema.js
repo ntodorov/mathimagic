@@ -57,7 +57,13 @@ function normalizeQuestions(questions) {
   if (!Array.isArray(questions)) {
     return [];
   }
-  return questions.filter((question) => question && typeof question === 'object');
+  return questions
+    .filter((question) => question && typeof question === 'object')
+    .map((question) => ({
+      ...question,
+      perQuestionDurationMs: coerceNonNegativeNumber(question.perQuestionDurationMs),
+      firstShownAt: question.firstShownAt ?? null,
+    }));
 }
 
 function normalizeSession(value, index = 0) {
@@ -77,6 +83,7 @@ function normalizeSession(value, index = 0) {
     completed: Boolean(source.completed),
     startedAt: source.startedAt ?? null,
     endedAt: source.endedAt ?? null,
+    durationMs: coerceNonNegativeNumber(source.durationMs),
     questions: normalizeQuestions(source.questions),
   };
 }
