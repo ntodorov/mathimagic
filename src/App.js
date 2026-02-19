@@ -180,9 +180,44 @@ function App() {
                   <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
                     Choose a Challenge
                   </p>
-                  <div className="mt-2 grid grid-cols-3 gap-2">
+                  <div className="mt-2 grid grid-cols-2 gap-2">
                     {OPERATION_OPTIONS.map((option) => {
                       const isActive = option.id === selectedOperation;
+                      const colorMap = {
+                        green: {
+                          active: 'border-green-400 bg-green-50 ring-2 ring-green-200',
+                          idle: 'border-green-200 bg-white/80 hover:border-green-300 hover:bg-green-50/50',
+                          symbol: 'bg-green-100 text-green-600',
+                          symbolActive: 'bg-green-500 text-white',
+                          text: 'text-green-700',
+                          textIdle: 'text-green-600/80',
+                        },
+                        rose: {
+                          active: 'border-rose-400 bg-rose-50 ring-2 ring-rose-200',
+                          idle: 'border-rose-200 bg-white/80 hover:border-rose-300 hover:bg-rose-50/50',
+                          symbol: 'bg-rose-100 text-rose-600',
+                          symbolActive: 'bg-rose-500 text-white',
+                          text: 'text-rose-700',
+                          textIdle: 'text-rose-600/80',
+                        },
+                        amber: {
+                          active: 'border-amber-400 bg-amber-50 ring-2 ring-amber-200',
+                          idle: 'border-amber-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50',
+                          symbol: 'bg-amber-100 text-amber-600',
+                          symbolActive: 'bg-amber-500 text-white',
+                          text: 'text-amber-700',
+                          textIdle: 'text-amber-600/80',
+                        },
+                        sky: {
+                          active: 'border-sky-400 bg-sky-50 ring-2 ring-sky-200',
+                          idle: 'border-sky-200 bg-white/80 hover:border-sky-300 hover:bg-sky-50/50',
+                          symbol: 'bg-sky-100 text-sky-600',
+                          symbolActive: 'bg-sky-500 text-white',
+                          text: 'text-sky-700',
+                          textIdle: 'text-sky-600/80',
+                        },
+                      };
+                      const colors = colorMap[option.color] ?? colorMap.green;
                       return (
                         <button
                           key={option.id}
@@ -190,14 +225,20 @@ function App() {
                           onClick={() => setSelectedOperation(option.id)}
                           aria-pressed={isActive}
                           aria-label={`Practice ${option.label}`}
-                          className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-bold transition ${
-                            isActive
-                              ? 'border-indigo-400 bg-white text-indigo-700 shadow-sm'
-                              : 'border-indigo-200 bg-white/60 text-indigo-500 hover:border-indigo-300'
+                          className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 font-bold transition-all ${
+                            isActive ? colors.active : colors.idle
                           }`}
                         >
-                          <span className="text-base">{option.symbol}</span>
-                          <span>{option.label}</span>
+                          <span
+                            className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black transition-colors ${
+                              isActive ? colors.symbolActive : colors.symbol
+                            }`}
+                          >
+                            {option.symbol}
+                          </span>
+                          <span className={`text-xs font-bold ${isActive ? colors.text : colors.textIdle}`}>
+                            {option.label}
+                          </span>
                         </button>
                       );
                     })}

@@ -15,7 +15,18 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function generateDivisionEquation({ profile, id, rng = Math.random }) {
+  const divisor = randomIntInclusive(profile.divisor.min, profile.divisor.max, rng);
+  const quotient = randomIntInclusive(profile.quotient.min, profile.quotient.max, rng);
+  const dividend = divisor * quotient;
+  return { id, x: dividend, y: divisor, operation: profile.symbol, solution: quotient };
+}
+
 function generateEquation({ operation, profile, id, rng = Math.random }) {
+  if (operation === 'division') {
+    return generateDivisionEquation({ profile, id, rng });
+  }
+
   const x = randomIntInclusive(profile.x.min, profile.x.max, rng);
   let y = randomIntInclusive(profile.y.min, profile.y.max, rng);
 

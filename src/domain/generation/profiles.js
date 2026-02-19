@@ -82,6 +82,28 @@ const OPERATION_PROFILE_CONFIG = {
       },
     },
   },
+  division: {
+    'k-2': {
+      easy: {
+        name: 'Division',
+        symbol: '÷',
+        divisor: { min: 1, max: 5 },
+        quotient: { min: 1, max: 5 },
+      },
+      medium: {
+        name: 'Division',
+        symbol: '÷',
+        divisor: { min: 2, max: 10 },
+        quotient: { min: 2, max: 10 },
+      },
+      hard: {
+        name: 'Division',
+        symbol: '÷',
+        divisor: { min: 2, max: 12 },
+        quotient: { min: 2, max: 12 },
+      },
+    },
+  },
 };
 
 function resolveProfile(operation, gradeBand = DEFAULT_GRADE_BAND, difficulty = DEFAULT_DIFFICULTY) {
