@@ -12,13 +12,72 @@ import {
 import packageJson from '../package.json';
 
 const PRACTICE_SECTION_ID = 'practice-section';
+const CHALLENGE_SELECTIONS_KEY = 'mathimagic_challenge_selections';
+
+const isValidOption = (value, options) => options.some((option) => option.id === value);
+
+const formatDuration = (durationMs) => {
+  const normalized = Number(durationMs);
+  if (!Number.isFinite(normalized) || normalized <= 0) {
+    return null;
+  }
+
+  const totalSeconds = Math.round(normalized / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes < 1) {
+    return `${seconds}s`;
+  }
+
+  return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+};
+
+const getInitialChallengeSelections = () => {
+  const defaults = {
+    operation: DEFAULT_OPERATION,
+    gradeBand: DEFAULT_GRADE_BAND,
+    difficulty: DEFAULT_DIFFICULTY,
+  };
+
+  if (typeof window === 'undefined') {
+    return defaults;
+  }
+
+  try {
+    const rawSavedSelections = window.localStorage.getItem(CHALLENGE_SELECTIONS_KEY);
+    if (!rawSavedSelections) {
+      return defaults;
+    }
+
+    const parsed = JSON.parse(rawSavedSelections);
+    if (!parsed || typeof parsed !== 'object') {
+      return defaults;
+    }
+
+    return {
+      operation: isValidOption(parsed.operation, OPERATION_OPTIONS)
+        ? parsed.operation
+        : defaults.operation,
+      gradeBand: isValidOption(parsed.gradeBand, GRADE_BAND_OPTIONS)
+        ? parsed.gradeBand
+        : defaults.gradeBand,
+      difficulty: isValidOption(parsed.difficulty, DIFFICULTY_OPTIONS)
+        ? parsed.difficulty
+        : defaults.difficulty,
+    };
+  } catch {
+    return defaults;
+  }
+};
 
 function App() {
   const { username, regenerateUsername } = useUsername();
   const { results, sessions, recordSession, deleteSession } = useResults();
-  const [selectedOperation, setSelectedOperation] = React.useState(DEFAULT_OPERATION);
-  const [selectedGradeBand, setSelectedGradeBand] = React.useState(DEFAULT_GRADE_BAND);
-  const [selectedDifficulty, setSelectedDifficulty] = React.useState(DEFAULT_DIFFICULTY);
+  const initialSelections = React.useMemo(() => getInitialChallengeSelections(), []);
+  const [selectedOperation, setSelectedOperation] = React.useState(initialSelections.operation);
+  const [selectedGradeBand, setSelectedGradeBand] = React.useState(initialSelections.gradeBand);
+  const [selectedDifficulty, setSelectedDifficulty] = React.useState(initialSelections.difficulty);
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
   const [currentSessionStats, setCurrentSessionStats] = React.useState({ answered: 0, total: 10 });
@@ -27,6 +86,25 @@ function App() {
   const scrollTimeoutRef = React.useRef(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
   const sessionActive = Boolean(activeSession);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        CHALLENGE_SELECTIONS_KEY,
+        JSON.stringify({
+          operation: selectedOperation,
+          gradeBand: selectedGradeBand,
+          difficulty: selectedDifficulty,
+        })
+      );
+    } catch {
+      // localStorage might be unavailable.
+    }
+  }, [selectedOperation, selectedGradeBand, selectedDifficulty]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -150,6 +228,7 @@ function App() {
   const reviewSession = sessions.find((session) => session.id === reviewSessionId) ?? null;
   const reviewOption = reviewSession ? getOperationOption(reviewSession.operationType) : null;
   const reviewQuestions = Array.isArray(reviewSession?.questions) ? reviewSession.questions : [];
+  const reviewDuration = formatDuration(reviewSession?.durationMs);
   const appVersion = process.env.REACT_APP_VERSION || packageJson.version;
 
   return (
@@ -486,6 +565,9 @@ function App() {
                       <p className="text-sm font-bold text-indigo-600">
                         {Number(reviewSession.correct) || 0}/{Number(reviewSession.attempted) || 0}
                       </p>
+                      {reviewDuration && (
+                        <p className="text-xs text-slate-500">Time: {reviewDuration}</p>
+                      )}
                       <p className="text-xs text-slate-500">
                         {reviewSession.completed ? 'Completed' : 'Ended early'}
                       </p>
@@ -519,6 +601,7 @@ function App() {
                           ? 'border-rose-200 bg-rose-50'
                           : 'border-slate-200 bg-white';
                       const operationSymbol = question.operation ?? reviewOption?.symbol ?? '';
+                      const questionDuration = formatDuration(question.perQuestionDurationMs);
 
                       return (
                         <li
@@ -546,6 +629,14 @@ function App() {
                                 {question.solution}
                               </span>
                             </p>
+                            {questionDuration && (
+                              <p>
+                                Time:{' '}
+                                <span className="font-semibold text-slate-700">
+                                  {questionDuration}
+                                </span>
+                              </p>
+                            )}
                           </div>
                         </li>
                       );
@@ -566,6 +657,7 @@ function App() {
                   const attempted = Number(session.attempted) || 0;
                   const total = Number(session.total) || attempted;
                   const timestamp = formatSessionTimestamp(session.endedAt ?? session.startedAt);
+                  const duration = formatDuration(session.durationMs);
                   const isReviewing = reviewSessionId === session.id;
                   return (
                     <li
@@ -604,6 +696,9 @@ function App() {
                           <p className="text-sm font-bold text-indigo-600">
                             {correct}/{attempted}
                           </p>
+                          {duration && (
+                            <p className="text-xs text-slate-500">Time: {duration}</p>
+                          )}
                           <p className="text-xs text-slate-500">
                             {session.completed ? 'Completed' : 'Ended early'}
                           </p>
@@ -647,5 +742,7 @@ function App() {
     </div>
   );
 }
+
+export { getInitialChallengeSelections };
 
 export default App;

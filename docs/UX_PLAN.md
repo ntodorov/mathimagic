@@ -10,6 +10,8 @@
 - Home / Start Practice
   - Primary CTA: "Start Practice"
   - Quick picks: Grade, Operation (addition/subtraction/multiplication/division), Difficulty
+  - Persist quick-pick selections across refresh/new tab
+  - Default operation is Addition for first-time visitors with no saved preferences
   - Continue last session if available
 - Practice
   - Single equation focus with swipeable carousel navigation
@@ -21,6 +23,7 @@
   - Step-by-step explanation
   - Past session review (read-only)
   - Show each equation, kid answer, and correct answer
+  - Show total session time (and per-question time when available)
   - Delete past sessions from history
 - Profile
   - Simple progress summary and badges

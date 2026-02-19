@@ -1,4 +1,4 @@
-export const DEFAULT_OPERATION = 'subtraction';
+export const DEFAULT_OPERATION = 'addition';
 
 export const OPERATION_OPTIONS = [
   { id: 'addition', label: 'Addition', symbol: '+', color: 'green' },

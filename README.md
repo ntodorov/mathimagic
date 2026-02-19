@@ -14,8 +14,11 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 - Single-question practice flow with Next/Enter and Done navigation
 - Results shown after ending a session or in review mode
 - Addition, subtraction, multiplication, and division practice sessions
+- Challenge selections (operation, grade, difficulty) are remembered across refreshes/tabs
+- New browsers default to Addition when no saved challenge exists
 - Clear selected-state highlight in challenge picker
 - Session history with read-only review of past answers
+- Session and per-question timing shown in history/review when available
 - Sessions only saved after at least one answer
 - Delete past sessions from history
 - Session progress indicator

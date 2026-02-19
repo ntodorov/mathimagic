@@ -1,29 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from './App';
-
-// Mock localStorage
-const localStorageMock = (() => {
-  let store = {};
-  return {
-    getItem: jest.fn((key) => store[key] || null),
-    setItem: jest.fn((key, value) => {
-      store[key] = value.toString();
-    }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
-  };
-})();
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-  configurable: true,
-  writable: true,
-});
+import App, { getInitialChallengeSelections } from './App';
 
 beforeEach(() => {
-  localStorageMock.clear();
+  window.localStorage.clear();
   jest.clearAllMocks();
 });
 
@@ -53,7 +33,7 @@ test('applies selected difficulty when starting practice', async () => {
     await user.click(screen.getByRole('button', { name: /start practice/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/15\s-\s1\s=/)).toBeInTheDocument();
+      expect(screen.getByText(/10\s\+\s10\s=/)).toBeInTheDocument();
     });
   } finally {
     randomSpy.mockRestore();
@@ -120,10 +100,10 @@ test('records ended sessions in the history list', async () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Past Sessions/i)).toBeInTheDocument();
-      expect(screen.getByText(/Subtraction Session/i)).toBeInTheDocument();
+      expect(screen.getByText(/Addition Session/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByText('1/1')).toBeInTheDocument();
+    expect(screen.getByText('0/1')).toBeInTheDocument();
     expect(screen.getByText(/Ended early/i)).toBeInTheDocument();
     expect(screen.getByText(/Answered 1 of 10/i)).toBeInTheDocument();
   } finally {
@@ -141,7 +121,7 @@ test('does not save sessions without answers', async () => {
   await user.click(screen.getByRole('button', { name: /end current session/i }));
 
   await waitFor(() => {
-    expect(screen.queryByText(/Subtraction Session/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Addition Session/i)).not.toBeInTheDocument();
   });
 
   expect(screen.getByText(/No sessions yet/i)).toBeInTheDocument();
@@ -163,12 +143,12 @@ test('deletes a session from the history list', async () => {
 
     await user.click(screen.getByRole('button', { name: /end current session/i }));
 
-    expect(await screen.findByText(/Subtraction Session/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Addition Session/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /delete/i }));
 
     await waitFor(() => {
-      expect(screen.queryByText(/Subtraction Session/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Addition Session/i)).not.toBeInTheDocument();
     });
 
     expect(screen.getByText(/No sessions yet/i)).toBeInTheDocument();
@@ -201,6 +181,79 @@ test('reviews past sessions in read-only mode', async () => {
     expect(screen.getAllByText(/Kid's Answer/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Correct Answer/i).length).toBeGreaterThan(0);
     expect(screen.queryAllByRole('textbox')).toHaveLength(0);
+  } finally {
+    randomSpy.mockRestore();
+  }
+});
+
+test('restores persisted challenge selections when saved values are valid', () => {
+  window.localStorage.setItem(
+    'mathimagic_challenge_selections',
+    JSON.stringify({ operation: 'division', gradeBand: 'k-2', difficulty: 'hard' })
+  );
+
+  expect(getInitialChallengeSelections()).toEqual({
+    operation: 'division',
+    gradeBand: 'k-2',
+    difficulty: 'hard',
+  });
+});
+
+test('defaults to addition when no saved challenge selections exist', () => {
+  render(<App />);
+
+  expect(screen.getByRole('button', { name: /practice addition/i })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('ignores invalid saved challenge selections and keeps defaults', () => {
+  window.localStorage.setItem(
+    'mathimagic_challenge_selections',
+    JSON.stringify({ operation: 'modulo', gradeBand: '9-12', difficulty: 'nightmare' })
+  );
+
+  render(<App />);
+
+  expect(screen.getByRole('button', { name: /practice addition/i })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByLabelText(/select grade band/i)).toHaveValue('k-2');
+  expect(screen.getByLabelText(/select difficulty/i)).toHaveValue('easy');
+});
+
+test('shows session and per-question timing in history review when available', async () => {
+  const user = userEvent.setup();
+
+  render(<App />);
+
+  await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+  const firstInput = await screen.findByRole('textbox', {
+    name: /answer for question 1/i,
+  });
+  await user.type(firstInput, '2');
+
+  await user.click(screen.getByRole('button', { name: /end current session/i }));
+
+  expect(screen.getAllByText(/Time:/i).length).toBeGreaterThan(0);
+
+  await user.click(screen.getByRole('button', { name: /review answers/i }));
+
+  expect(screen.getAllByText(/Time:/i).length).toBeGreaterThan(1);
+});
+
+test('keeps review/history compatible when older sessions have no timing details', async () => {
+  const user = userEvent.setup();
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+  try {
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /start practice/i }));
+    const firstInput = await screen.findByRole('textbox', { name: /answer for question 1/i });
+    await user.type(firstInput, '2');
+    await user.click(screen.getByRole('button', { name: /end current session/i }));
+
+    await user.click(screen.getByRole('button', { name: /review answers/i }));
+
+    expect(screen.getByText(/Review Mode/i)).toBeInTheDocument();
   } finally {
     randomSpy.mockRestore();
   }

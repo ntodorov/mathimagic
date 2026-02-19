@@ -13,12 +13,12 @@ describe('EquationList', () => {
     randomSpy.mockRestore();
   });
 
-  test('renders a single subtraction card by default', () => {
+  test('renders a single addition card by default', () => {
     render(<EquationList />);
 
-    expect(screen.getByText(/Subtraction Challenge/i)).toBeInTheDocument();
+    expect(screen.getByText(/Addition Challenge/i)).toBeInTheDocument();
     expect(screen.getAllByRole('textbox')).toHaveLength(1);
-    expect(screen.getAllByText(/2\s-\s1\s=/)).toHaveLength(1);
+    expect(screen.getAllByText(/1\s\+\s1\s=/)).toHaveLength(1);
   });
 
   test('renders addition equations when operationType is addition', () => {
@@ -77,10 +77,10 @@ describe('EquationList', () => {
     expect(sessionPayload.questions).toHaveLength(10);
     expect(sessionPayload.questions[0]).toEqual(expect.objectContaining({
       id: 1,
-      x: 2,
+      x: 1,
       y: 1,
-      operation: '-',
-      solution: 1,
+      operation: '+',
+      solution: 2,
       answer: '',
       hasAnswer: false,
       isCorrect: false,
