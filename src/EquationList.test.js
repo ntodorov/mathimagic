@@ -35,6 +35,13 @@ describe('EquationList', () => {
     expect(screen.getAllByText(/1\s×\s1\s=/)).toHaveLength(1);
   });
 
+  test('renders division equations when operationType is division', () => {
+    render(<EquationList operationType="division" />);
+
+    expect(screen.getByText(/Division Challenge/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/1\s÷\s1\s=/)).toHaveLength(1);
+  });
+
   test('uses grade and difficulty profile settings when generating equations', () => {
     render(
       <EquationList

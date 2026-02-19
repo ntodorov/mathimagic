@@ -25,3 +25,6 @@ Follow this rule when updating task status:
 18. Keep answer input focused between equations on mobile. - done
 19. Add swipeable carousel navigation with previous/next controls. - done
 20. Document carousel navigation and focus behavior updates. - done
+21. Add division practice mode with clean integer answers. - done
+22. Redesign challenge selector as 2x2 color-coded grid for four operations. - done
+23. Extend tests for division practice. - done

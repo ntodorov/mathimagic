@@ -13,7 +13,7 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 - Fast loading and simple UI
 - Single-question practice flow with Next/Enter and Done navigation
 - Results shown after ending a session or in review mode
-- Addition, subtraction, and multiplication practice sessions
+- Addition, subtraction, multiplication, and division practice sessions
 - Session history with read-only review of past answers
 - Sessions only saved after at least one answer
 - Delete past sessions from history
