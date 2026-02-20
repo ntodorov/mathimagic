@@ -5,9 +5,7 @@ import { useUsername, useResults } from './useUsername';
 import { DEFAULT_OPERATION, OPERATION_OPTIONS, getOperationOption } from './operations';
 import {
   DEFAULT_DIFFICULTY,
-  DEFAULT_GRADE_BAND,
   DIFFICULTY_OPTIONS,
-  GRADE_BAND_OPTIONS,
 } from './domain/generation';
 import packageJson from '../package.json';
 
@@ -36,7 +34,6 @@ const formatDuration = (durationMs) => {
 const getInitialChallengeSelections = () => {
   const defaults = {
     operation: DEFAULT_OPERATION,
-    gradeBand: DEFAULT_GRADE_BAND,
     difficulty: DEFAULT_DIFFICULTY,
   };
 
@@ -59,9 +56,6 @@ const getInitialChallengeSelections = () => {
       operation: isValidOption(parsed.operation, OPERATION_OPTIONS)
         ? parsed.operation
         : defaults.operation,
-      gradeBand: isValidOption(parsed.gradeBand, GRADE_BAND_OPTIONS)
-        ? parsed.gradeBand
-        : defaults.gradeBand,
       difficulty: isValidOption(parsed.difficulty, DIFFICULTY_OPTIONS)
         ? parsed.difficulty
         : defaults.difficulty,
@@ -76,7 +70,6 @@ function App() {
   const { results, sessions, recordSession, deleteSession } = useResults();
   const initialSelections = React.useMemo(() => getInitialChallengeSelections(), []);
   const [selectedOperation, setSelectedOperation] = React.useState(initialSelections.operation);
-  const [selectedGradeBand, setSelectedGradeBand] = React.useState(initialSelections.gradeBand);
   const [selectedDifficulty, setSelectedDifficulty] = React.useState(initialSelections.difficulty);
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
@@ -97,14 +90,13 @@ function App() {
         CHALLENGE_SELECTIONS_KEY,
         JSON.stringify({
           operation: selectedOperation,
-          gradeBand: selectedGradeBand,
           difficulty: selectedDifficulty,
         })
       );
     } catch {
       // localStorage might be unavailable.
     }
-  }, [selectedOperation, selectedGradeBand, selectedDifficulty]);
+  }, [selectedOperation, selectedDifficulty]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -131,7 +123,6 @@ function App() {
     setActiveSession({
       id: sessionId,
       operationType: selectedOperation,
-      gradeBand: selectedGradeBand,
       difficulty: selectedDifficulty,
       startedAt: new Date().toISOString(),
     });
@@ -147,7 +138,7 @@ function App() {
         block: 'start',
       });
     }, 100);
-  }, [selectedOperation, selectedGradeBand, selectedDifficulty, prefersReducedMotion]);
+  }, [selectedOperation, selectedDifficulty, prefersReducedMotion]);
 
   React.useEffect(() => () => {
     if (scrollTimeoutRef.current) {
@@ -174,7 +165,6 @@ function App() {
         recordSession({
           id: activeSession.id,
           operationType: activeSession.operationType,
-          gradeBand: activeSession.gradeBand,
           difficulty: activeSession.difficulty,
           startedAt: startedAtIso,
           endedAt: endedAtIso,
@@ -223,7 +213,6 @@ function App() {
   };
 
   const getDifficultyLabel = (value) => DIFFICULTY_OPTIONS.find((option) => option.id === value)?.label ?? value;
-  const getGradeBandLabel = (value) => GRADE_BAND_OPTIONS.find((option) => option.id === value)?.label ?? value;
 
   const reviewSession = sessions.find((session) => session.id === reviewSessionId) ?? null;
   const reviewOption = reviewSession ? getOperationOption(reviewSession.operationType) : null;
@@ -336,22 +325,7 @@ function App() {
                       );
                     })}
                   </div>
-                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <label className="flex flex-col gap-1">
-                      <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
-                        Grade
-                      </span>
-                      <select
-                        value={selectedGradeBand}
-                        onChange={(event) => setSelectedGradeBand(event.target.value)}
-                        className="rounded-xl border-2 border-indigo-200 bg-white/90 px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm focus:border-indigo-300 focus:outline-none"
-                        aria-label="Select grade band"
-                      >
-                        {GRADE_BAND_OPTIONS.map((option) => (
-                          <option key={option.id} value={option.id}>{option.label}</option>
-                        ))}
-                      </select>
-                    </label>
+                  <div className="mt-3 grid grid-cols-1 gap-2">
                     <label className="flex flex-col gap-1">
                       <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
                         Difficulty
@@ -385,9 +359,6 @@ function App() {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-1 text-xs font-semibold text-indigo-600">
-                        Grade {getGradeBandLabel(activeSession?.gradeBand ?? selectedGradeBand)}
-                      </span>
                       <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-1 text-xs font-semibold text-indigo-600">
                         {getDifficultyLabel(activeSession?.difficulty ?? selectedDifficulty)}
                       </span>
@@ -450,9 +421,6 @@ function App() {
                         {activeOption.label}
                       </span>
                       <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
-                        {getGradeBandLabel(activeSession?.gradeBand ?? selectedGradeBand)}
-                      </span>
-                      <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
                         {getDifficultyLabel(activeSession?.difficulty ?? selectedDifficulty)}
                       </span>
                     </div>
@@ -484,7 +452,6 @@ function App() {
               sectionId={PRACTICE_SECTION_ID}
               focusSignal={sessionKey}
               operationType={activeSession?.operationType ?? selectedOperation}
-              gradeBand={activeSession?.gradeBand ?? selectedGradeBand}
               difficulty={activeSession?.difficulty ?? selectedDifficulty}
               onProgress={handleSessionProgress}
               onNewSession={handleStartPractice}
@@ -549,11 +516,6 @@ function App() {
                         {reviewOption?.label ?? 'Session'} Summary
                       </p>
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {reviewSession?.gradeBand && (
-                          <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
-                            Grade {getGradeBandLabel(reviewSession.gradeBand)}
-                          </span>
-                        )}
                         {reviewSession?.difficulty && (
                           <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
                             {getDifficultyLabel(reviewSession.difficulty)}
@@ -680,11 +642,6 @@ function App() {
                             <p className="text-xs text-slate-500">{timestamp}</p>
                           )}
                           <div className="mt-1 flex flex-wrap gap-1">
-                            {session.gradeBand && (
-                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                                Grade {getGradeBandLabel(session.gradeBand)}
-                              </span>
-                            )}
                             {session.difficulty && (
                               <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
                                 {getDifficultyLabel(session.difficulty)}

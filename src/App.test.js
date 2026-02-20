@@ -194,7 +194,6 @@ test('restores persisted challenge selections when saved values are valid', () =
 
   expect(getInitialChallengeSelections()).toEqual({
     operation: 'division',
-    gradeBand: 'k-2',
     difficulty: 'hard',
   });
 });
@@ -214,7 +213,6 @@ test('ignores invalid saved challenge selections and keeps defaults', () => {
   render(<App />);
 
   expect(screen.getByRole('button', { name: /practice addition/i })).toHaveAttribute('aria-pressed', 'true');
-  expect(screen.getByLabelText(/select grade band/i)).toHaveValue('k-2');
   expect(screen.getByLabelText(/select difficulty/i)).toHaveValue('easy');
 });
 
