@@ -9,3 +9,4 @@ Follow these documentation rules for this repo:
 - When you add/finish tasks, update docs/TASKS.md.
   - Only mark a task as "done" after tests are green.
 - If no documentation updates are needed, call that out explicitly.
+- If tests or build fail during development/release flow, fix them in-place and continue; do not pause to ask for confirmation.
