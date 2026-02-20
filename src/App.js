@@ -17,10 +17,15 @@ import {
 import {
   CURRICULUM_UNLOCK_SEQUENCE,
 } from './domain/curriculum/progression';
+import {
+  CORE_ADAPTIVE_OPERATION_IDS,
+  deriveWeakFactsByOperation,
+} from './domain/adaptive/weakFacts';
 import packageJson from '../package.json';
 
 const PRACTICE_SECTION_ID = 'practice-section';
 const CHALLENGE_SELECTIONS_KEY = 'mathimagic_challenge_selections';
+const EMPTY_ADAPTIVE_FACTS = [];
 
 const isValidOption = (value, options) => options.some((option) => option.id === value);
 
@@ -95,6 +100,10 @@ function App() {
   const scrollTimeoutRef = React.useRef(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
   const sessionActive = Boolean(activeSession);
+  const adaptiveFactsByOperation = React.useMemo(
+    () => deriveWeakFactsByOperation(sessions),
+    [sessions]
+  );
   const unlockedModes = Array.isArray(curriculumState?.unlockedModes)
     ? curriculumState.unlockedModes
     : [DEFAULT_OPERATION];
@@ -239,6 +248,12 @@ function App() {
   }, [deleteSession]);
 
   const activeOption = getOperationOption(activeSession?.operationType ?? selectedOperation);
+  const selectedAdaptiveFacts = adaptiveFactsByOperation[selectedOperation] ?? EMPTY_ADAPTIVE_FACTS;
+  const activeAdaptiveFacts = activeSession
+    ? (adaptiveFactsByOperation[activeSession.operationType] ?? EMPTY_ADAPTIVE_FACTS)
+    : selectedAdaptiveFacts;
+  const selectedModeSupportsAdaptive = CORE_ADAPTIVE_OPERATION_IDS.includes(selectedOperation);
+  const activeModeSupportsAdaptive = CORE_ADAPTIVE_OPERATION_IDS.includes(activeSession?.operationType);
   const sessionProgressPercent = currentSessionStats.total > 0
     ? Math.round((currentSessionStats.answered / currentSessionStats.total) * 100)
     : 0;
@@ -496,6 +511,12 @@ function App() {
                       </select>
                     </label>
                   </div>
+                  {selectedModeSupportsAdaptive && selectedAdaptiveFacts.length > 0 && (
+                    <p className="mt-2 text-xs font-semibold text-amber-700">
+                      Adaptive focus queued: revisiting up to {Math.min(3, selectedAdaptiveFacts.length)} recent tricky fact
+                      {Math.min(3, selectedAdaptiveFacts.length) === 1 ? '' : 's'}.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="rounded-2xl bg-white/70 p-3">
@@ -516,6 +537,11 @@ function App() {
                       <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-2 py-1 text-xs font-semibold text-indigo-600">
                         {getDifficultyLabel(activeSession?.difficulty ?? selectedDifficulty)}
                       </span>
+                      {activeModeSupportsAdaptive && activeAdaptiveFacts.length > 0 && (
+                        <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
+                          Adaptive focus: {Math.min(3, activeAdaptiveFacts.length)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -608,6 +634,7 @@ function App() {
               focusSignal={sessionKey}
               operationType={activeSession?.operationType ?? selectedOperation}
               difficulty={activeSession?.difficulty ?? selectedDifficulty}
+              adaptiveFacts={activeAdaptiveFacts}
               onProgress={handleSessionProgress}
               onNewSession={handleStartPractice}
               onEndSession={handleEndSession}

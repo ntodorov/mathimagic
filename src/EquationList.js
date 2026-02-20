@@ -10,11 +10,14 @@ import {
   buildReviewExplanation,
 } from './domain/generation';
 
-function buildOperation(type, gradeBand, difficulty) {
+const EMPTY_ADAPTIVE_FACTS = [];
+
+function buildOperation(type, gradeBand, difficulty, adaptiveFacts) {
   return generateOperationSet({
     operation: type,
     gradeBand,
     difficulty,
+    adaptiveFacts,
   });
 }
 
@@ -27,8 +30,11 @@ const EquationList = ({
   operationType = DEFAULT_OPERATION,
   gradeBand = DEFAULT_GRADE_BAND,
   difficulty = DEFAULT_DIFFICULTY,
+  adaptiveFacts = EMPTY_ADAPTIVE_FACTS,
 }) => {
-  const [operation, setOperation] = React.useState(() => buildOperation(operationType, gradeBand, difficulty));
+  const [operation, setOperation] = React.useState(
+    () => buildOperation(operationType, gradeBand, difficulty, adaptiveFacts)
+  );
   const [answers, setAnswers] = React.useState({});
   const [sessionCompleted, setSessionCompleted] = React.useState(false);
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -83,11 +89,17 @@ const EquationList = ({
     questionTimingRef.current[questionId] = entry;
   }, []);
 
-  const resetSession = React.useCallback((nextOperationType, nextGradeBand, nextDifficulty) => {
+  const resetSession = React.useCallback((nextOperationType, nextGradeBand, nextDifficulty, nextAdaptiveFacts) => {
     const resolvedType = nextOperationType ?? operationType;
     const resolvedGradeBand = nextGradeBand ?? gradeBand;
     const resolvedDifficulty = nextDifficulty ?? difficulty;
-    const nextOperation = buildOperation(resolvedType, resolvedGradeBand, resolvedDifficulty);
+    const resolvedAdaptiveFacts = nextAdaptiveFacts ?? adaptiveFacts;
+    const nextOperation = buildOperation(
+      resolvedType,
+      resolvedGradeBand,
+      resolvedDifficulty,
+      resolvedAdaptiveFacts
+    );
 
     sessionStartedAtMsRef.current = Date.now();
     questionTimingRef.current = {};
@@ -103,7 +115,7 @@ const EquationList = ({
     }
 
     scheduleFocus();
-  }, [operationType, gradeBand, difficulty, scheduleFocus, activateQuestionTiming]);
+  }, [operationType, gradeBand, difficulty, adaptiveFacts, scheduleFocus, activateQuestionTiming]);
 
   React.useEffect(() => () => {
     if (focusTimeoutRef.current) {
@@ -186,8 +198,8 @@ const EquationList = ({
   }, [focusSignal, resetSession]);
 
   React.useEffect(() => {
-    resetSession(operationType, gradeBand, difficulty);
-  }, [operationType, gradeBand, difficulty, resetSession]);
+    resetSession(operationType, gradeBand, difficulty, adaptiveFacts);
+  }, [operationType, gradeBand, difficulty, adaptiveFacts, resetSession]);
 
   const totalQuestions = operation.equations.length;
   const answerEntries = Object.values(answers);
@@ -337,6 +349,12 @@ const EquationList = ({
             <h2 id="practice-heading" className="text-lg font-bold text-indigo-700">
               {activeOption.label} Challenge
             </h2>
+            {operation.adaptiveQuestionCount > 0 && (
+              <p className="text-xs font-semibold text-indigo-500">
+                Adaptive focus: revisiting {operation.adaptiveQuestionCount} tricky fact
+                {operation.adaptiveQuestionCount === 1 ? '' : 's'}.
+              </p>
+            )}
           </div>
         </div>
 

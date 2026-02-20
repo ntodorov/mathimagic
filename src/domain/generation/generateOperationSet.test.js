@@ -72,6 +72,37 @@ describe('generateOperationSet', () => {
     });
   });
 
+  test('prioritizes adaptive weak facts for core operation sessions', () => {
+    const result = generateOperationSet({
+      operation: 'addition',
+      questionCount: 5,
+      rng: () => 0.99,
+      adaptiveFacts: [
+        { x: 7, y: 8, misses: 3, lastMissedAt: '2026-02-02T00:00:00.000Z' },
+        { x: 2, y: 9, misses: 2, lastMissedAt: '2026-02-01T00:00:00.000Z' },
+      ],
+    });
+
+    expect(result.adaptiveQuestionCount).toBe(2);
+    expect(result.equations[0]).toEqual(expect.objectContaining({
+      x: 7,
+      y: 8,
+      solution: 15,
+      isAdaptive: true,
+    }));
+    expect(result.equations[1]).toEqual(expect.objectContaining({
+      x: 2,
+      y: 9,
+      solution: 11,
+      isAdaptive: true,
+    }));
+    expect(result.equations[2]).toEqual(expect.objectContaining({
+      x: 10,
+      y: 10,
+    }));
+    expect(result.equations[2]).not.toHaveProperty('isAdaptive');
+  });
+
   test('generates division bridge questions with remainder scoring data', () => {
     const result = generateOperationSet({ operation: 'division-bridge', questionCount: 8, rng: () => 0 });
 

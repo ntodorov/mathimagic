@@ -54,6 +54,20 @@ describe('EquationList', () => {
     expect(screen.getAllByText(/5\s×\s5\s=/)).toHaveLength(1);
   });
 
+  test('injects adaptive weak facts at the start of a core session', () => {
+    render(
+      <EquationList
+        operationType="addition"
+        adaptiveFacts={[
+          { x: 7, y: 8, misses: 2, lastMissedAt: '2026-02-02T10:00:00.000Z' },
+        ]}
+      />
+    );
+
+    expect(screen.getByText(/7\s\+\s8\s=/)).toBeInTheDocument();
+    expect(screen.getByText(/Adaptive focus: revisiting 1 tricky fact/i)).toBeInTheDocument();
+  });
+
   test('calls onEndSession with current stats', async () => {
     const user = userEvent.setup();
     const onEndSession = jest.fn();

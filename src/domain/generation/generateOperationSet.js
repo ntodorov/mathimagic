@@ -6,6 +6,8 @@ const {
 } = require('./profiles');
 const { simplifyFraction } = require('./answers');
 
+const ADAPTIVE_CORE_MODES = ['addition', 'subtraction', 'multiplication', 'division'];
+
 function randomIntInclusive(min, max, rng = Math.random) {
   const ceilMin = Math.ceil(min);
   const floorMax = Math.floor(max);
@@ -43,6 +45,11 @@ function fractionToDecimalString(value) {
   }
   const fixed = value.toFixed(4);
   return fixed.replace(/\.?0+$/, '');
+}
+
+function toFiniteNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function generateDivisionEquation({ profile, id, rng = Math.random }) {
@@ -353,6 +360,145 @@ function generateEquation({ operation, profile, id, rng = Math.random, inMixedMo
   return baseQuestion;
 }
 
+function withinRange(value, range) {
+  if (!range || !Number.isFinite(value)) {
+    return false;
+  }
+  return value >= range.min && value <= range.max;
+}
+
+function buildAdaptiveCoreQuestion({ operation, profile, id, fact }) {
+  const x = toFiniteNumber(fact?.x);
+  const y = toFiniteNumber(fact?.y);
+  if (x === null || y === null) {
+    return null;
+  }
+
+  if (operation === 'addition') {
+    if (!withinRange(x, profile.x) || !withinRange(y, profile.y)) {
+      return null;
+    }
+    return {
+      id,
+      x,
+      y,
+      operation: profile.symbol,
+      solution: x + y,
+      answerType: 'number',
+      prompt: `${x} ${profile.symbol} ${y} =`,
+      isAdaptive: true,
+    };
+  }
+
+  if (operation === 'subtraction') {
+    if (!withinRange(x, profile.x) || !withinRange(y, profile.y)) {
+      return null;
+    }
+    if (profile.enforceNonNegative && x < y) {
+      return null;
+    }
+    return {
+      id,
+      x,
+      y,
+      operation: profile.symbol,
+      solution: x - y,
+      answerType: 'number',
+      prompt: `${x} ${profile.symbol} ${y} =`,
+      isAdaptive: true,
+    };
+  }
+
+  if (operation === 'multiplication') {
+    if (!withinRange(x, profile.x) || !withinRange(y, profile.y)) {
+      return null;
+    }
+    return {
+      id,
+      x,
+      y,
+      operation: profile.symbol,
+      solution: x * y,
+      answerType: 'number',
+      prompt: `${x} ${profile.symbol} ${y} =`,
+      isAdaptive: true,
+    };
+  }
+
+  if (operation === 'division') {
+    if (y === 0 || x % y !== 0) {
+      return null;
+    }
+    const quotient = x / y;
+    if (!withinRange(y, profile.divisor) || !withinRange(quotient, profile.quotient)) {
+      return null;
+    }
+    return {
+      id,
+      x,
+      y,
+      operation: profile.symbol,
+      solution: quotient,
+      answerType: 'number',
+      prompt: `${x} ${profile.symbol} ${y} =`,
+      isAdaptive: true,
+    };
+  }
+
+  return null;
+}
+
+function buildAdaptiveCoreQuestions({
+  operation,
+  profile,
+  questionCount,
+  adaptiveFacts = [],
+}) {
+  if (!ADAPTIVE_CORE_MODES.includes(operation)) {
+    return [];
+  }
+
+  const rankedFacts = Array.isArray(adaptiveFacts)
+    ? adaptiveFacts
+      .filter((fact) => fact && typeof fact === 'object')
+      .sort((left, right) => {
+        const leftMisses = toFiniteNumber(left.misses) ?? 0;
+        const rightMisses = toFiniteNumber(right.misses) ?? 0;
+        if (rightMisses !== leftMisses) {
+          return rightMisses - leftMisses;
+        }
+        const leftLast = left.lastMissedAt ?? '';
+        const rightLast = right.lastMissedAt ?? '';
+        if (leftLast === rightLast) {
+          return 0;
+        }
+        return rightLast > leftLast ? 1 : -1;
+      })
+    : [];
+
+  const maxAdaptiveQuestions = Math.min(questionCount, 3);
+  const selected = [];
+
+  rankedFacts.forEach((fact) => {
+    if (selected.length >= maxAdaptiveQuestions) {
+      return;
+    }
+
+    const candidate = buildAdaptiveCoreQuestion({
+      operation,
+      profile,
+      id: selected.length + 1,
+      fact,
+    });
+
+    if (candidate) {
+      selected.push(candidate);
+    }
+  });
+
+  return selected;
+}
+
 function generateMixedMasterySet({
   gradeBand = DEFAULT_GRADE_BAND,
   difficulty = DEFAULT_DIFFICULTY,
@@ -414,15 +560,21 @@ function generateOperationSet({
   difficulty = DEFAULT_DIFFICULTY,
   questionCount = DEFAULT_QUESTION_COUNT,
   rng = Math.random,
+  adaptiveFacts = [],
 }) {
   if (operation === 'mixed-mastery') {
     return generateMixedMasterySet({ gradeBand, difficulty, questionCount, rng });
   }
 
   const profile = resolveProfile(operation, gradeBand, difficulty);
-  const equations = [];
+  const equations = buildAdaptiveCoreQuestions({
+    operation,
+    profile,
+    questionCount,
+    adaptiveFacts,
+  });
 
-  for (let index = 0; index < questionCount; index += 1) {
+  for (let index = equations.length; index < questionCount; index += 1) {
     equations.push(generateEquation({ operation, profile, id: index + 1, rng }));
   }
 
@@ -430,6 +582,7 @@ function generateOperationSet({
     name: profile.name,
     type: operation,
     equations,
+    adaptiveQuestionCount: equations.filter((question) => question.isAdaptive).length,
     profile: {
       gradeBand,
       difficulty,

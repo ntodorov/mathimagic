@@ -43,6 +43,7 @@
 - Keep the numeric keypad open by preserving input focus on advance.
 - Support swipe left/right plus previous/next buttons for navigation.
 - Do not save sessions until at least one answer is provided.
+- For core operations, prioritize a few recently missed facts at session start (adaptive focus).
 
 ### Delivery Requirements
 - A task is only complete when tests are green.

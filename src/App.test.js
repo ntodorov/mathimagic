@@ -205,6 +205,49 @@ test('defaults to addition when no saved challenge selections exist', () => {
   expect(screen.getByRole('button', { name: /practice addition/i })).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('queues adaptive weak facts from session history for core modes', async () => {
+  const user = userEvent.setup();
+
+  window.localStorage.setItem(
+    storageKeys.SESSIONS_KEY,
+    JSON.stringify({
+      version: 1,
+      data: [
+        {
+          id: 'adaptive-1',
+          operationType: 'addition',
+          correct: 0,
+          attempted: 1,
+          total: 1,
+          completed: true,
+          endedAt: '2026-02-19T09:00:00.000Z',
+          questions: [
+            {
+              id: 1,
+              x: 7,
+              y: 8,
+              operation: '+',
+              answerType: 'number',
+              answer: '20',
+              hasAnswer: true,
+              isCorrect: false,
+            },
+          ],
+        },
+      ],
+    })
+  );
+
+  render(<App />);
+
+  expect(screen.getByText(/Adaptive focus queued: revisiting up to 1 recent tricky fact/i)).toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: /start practice/i }));
+
+  expect(await screen.findByText(/7\s\+\s8\s=/)).toBeInTheDocument();
+  expect(screen.getByText(/Adaptive focus: revisiting 1 tricky fact/i)).toBeInTheDocument();
+});
+
 test('ignores invalid saved challenge selections and keeps defaults', () => {
   window.localStorage.setItem(
     'mathimagic_challenge_selections',

@@ -20,6 +20,7 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 - Decimals Bridge mode with fraction/decimal conversion and money context questions
 - Mixed Mastery sets blending operations, fractions, and decimals
 - Curriculum progression that unlocks post-division modes after mastery thresholds
+- Adaptive core-operation sessions that prioritize recently missed facts
 - Challenge selections (operation and difficulty) are remembered across refreshes/tabs
 - New browsers default to Addition when no saved challenge exists
 - Clear selected-state highlight in challenge picker

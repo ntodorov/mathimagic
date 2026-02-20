@@ -37,3 +37,4 @@ Follow this rule when updating task status:
 30. Add domain generators and tests for all post-division phases. - done
 31. Add review explanations for fraction/decimal mistakes. - done
 32. Update docs and onboarding copy for new curriculum modes. - done
+33. Add adaptive weak-fact weighting for core operation sessions (generation + UI + tests + docs). - done
