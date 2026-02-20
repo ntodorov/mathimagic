@@ -1,11 +1,18 @@
+import {
+  defaultCurriculumState,
+  normalizeCurriculumState,
+} from './domain/curriculum/progression';
+
 const STORAGE_SCHEMA_VERSION = 1;
 
 const RESULTS_KEY = 'mathimagic_results';
 const SESSIONS_KEY = 'mathimagic_sessions';
+const CURRICULUM_STATE_KEY = 'mathimagic_curriculum_state';
 
 export const storageKeys = {
   RESULTS_KEY,
   SESSIONS_KEY,
+  CURRICULUM_STATE_KEY,
 };
 
 export function defaultResults() {
@@ -105,6 +112,9 @@ function migrateLegacyValue(key, parsedValue) {
   if (key === SESSIONS_KEY) {
     return normalizeSessions(parsedValue);
   }
+  if (key === CURRICULUM_STATE_KEY) {
+    return normalizeCurriculumState(parsedValue);
+  }
   return parsedValue;
 }
 
@@ -173,6 +183,29 @@ export function writeSessions(sessions, localStorageRef = localStorage) {
   const normalized = normalizeSessions(sessions);
   try {
     persistVersioned(localStorageRef, SESSIONS_KEY, normalized);
+  } catch {
+    // localStorage may be unavailable
+  }
+  return normalized;
+}
+
+export function readCurriculumState(localStorageRef = localStorage) {
+  try {
+    return readAndMigrate(
+      localStorageRef,
+      CURRICULUM_STATE_KEY,
+      normalizeCurriculumState,
+      defaultCurriculumState()
+    );
+  } catch {
+    return defaultCurriculumState();
+  }
+}
+
+export function writeCurriculumState(curriculumState, localStorageRef = localStorage) {
+  const normalized = normalizeCurriculumState(curriculumState);
+  try {
+    persistVersioned(localStorageRef, CURRICULUM_STATE_KEY, normalized);
   } catch {
     // localStorage may be unavailable
   }

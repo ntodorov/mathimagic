@@ -8,6 +8,7 @@ const {
   resolveProfile,
 } = require('./profiles');
 const { generateOperationSet, generateEquation, randomIntInclusive } = require('./generateOperationSet');
+const { evaluateQuestionAnswer, formatCorrectAnswer, buildReviewExplanation } = require('./answers');
 
 module.exports = {
   DEFAULT_GRADE_BAND,
@@ -20,4 +21,7 @@ module.exports = {
   generateOperationSet,
   generateEquation,
   randomIntInclusive,
+  evaluateQuestionAnswer,
+  formatCorrectAnswer,
+  buildReviewExplanation,
 };

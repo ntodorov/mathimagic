@@ -1,94 +1,82 @@
-# Mathimagic Roadmap (Phase 1 Planning)
+# Mathimagic Roadmap (Post-Division Curriculum Expansion)
 
-Last updated: 2026-02-17
+Last updated: 2026-02-19
 
-## 1) Audit Summary
+## Goal
+Turn Mathimagic from core operations practice into a guided learning path that naturally continues after division.
 
-### Repository/access status
-- ✅ Repository cloned successfully from `https://github.com/ntodorov/mathimagic` into:
-  - `/home/jarviz/.openclaw/workspace/projects/mathimagic`
-- ✅ Test baseline is healthy:
-  - `npm run test:ci` → **4 suites, 18 tests, all passing**
-- ✅ CI/CD exists via GitHub Actions (`.github/workflows/deploy.yml`) and deploys to GitHub Pages on `master`.
-- ✅ Open GitHub issues check returned none (`/repos/ntodorov/mathimagic/issues?state=open` returned `[]`).
-
-### Current architecture (practical view)
-- **Frontend:** Create React App + React 19 + Tailwind CSS.
-- **State/persistence:** Local state and `localStorage` via `useUsername` + `useResults` hooks.
-- **Core flow:**
-  - Landing page + operation selection (add/subtract/multiply)
-  - Single-question practice card with next/back/swipe
-  - Session end + summary persistence
-  - Session history + read-only review + delete
-- **Code shape:**
-  - `App.js` (~467 LOC) and `EquationList.js` (~432 LOC) are currently monolithic.
-  - Math generation logic is embedded in UI file (`EquationList.js`) rather than isolated domain modules.
-
-### Key opportunities
-1. **Difficulty/grade system is planned in docs but not implemented yet** (high user-visible value).
-2. **No guided mistakes review/hints/explanations yet** (high learning impact).
-3. **Large components increase future change risk** (maintainability bottleneck).
-4. **No adaptive content strategy** (all users get same random distribution).
-5. **No achievements/profile progression model despite UX vision**.
+## Pedagogical Sequence
+1. **Division Bridge** (remainders + sharing stories)
+2. **Fractions as Division** (a ÷ b = a/b)
+3. **Fraction Sense** (equivalent fractions, compare/order, number lines)
+4. **Fractions → Decimals** (tenths/hundredths, money context)
+5. **Mixed Mastery** (operations + fractions + decimals + word problems)
 
 ---
 
-## 2) Prioritized implementation order
+## Implementation Plan
 
-### Phase A (Immediate: 1-2 sprints)
-1. Add difficulty + grade controls and wire generation ranges by operation.
-2. Refactor equation generation into tested domain modules (`src/domain/` or `src/lib/`).
-3. Add “mistakes review” panel with per-question explanation skeleton.
-4. Introduce schema versioning/migration for `localStorage` session data.
+### Phase 1 — Division Bridge (Sprint 1)
+- Add remainder-aware question generator.
+- Add answer format support for quotient + remainder.
+- Add story-style prompts around equal sharing and leftovers.
+- Update session summary to include remainder correctness.
 
-### Phase B (Near-term: 2-4 sprints)
-5. Adaptive practice mode (bias toward weak facts).
-6. Student profile primitives (daily goal, streak logic, badges v1).
-7. Accessibility hardening (reduced motion support, keyboard and SR labels polish).
+**Acceptance criteria**
+- Kids can complete a full session with remainder questions.
+- Review mode clearly shows expected quotient/remainder.
+- Tests cover generation, answer validation, and review rendering.
 
-### Phase C (Long-term/high impact)
-8. Parent/teacher insights dashboard (aggregated weak areas + trends).
-9. Offline-first reliability (service worker strategy and cache management).
-10. Optional cloud sync/export/import for device portability.
+### Phase 2 — Fractions as Division (Sprint 2)
+- Add fraction question type from division prompts.
+- Add visual prompt scaffolding (bars/pizza slices; static v1 assets acceptable).
+- Introduce numerator/denominator vocabulary in UI copy.
+
+**Acceptance criteria**
+- Questions map division statements to fraction form correctly.
+- Visual + symbolic prompts are available in practice and review.
+- Tests cover parser/validator behavior for fraction answers.
+
+### Phase 3 — Fraction Sense (Sprint 3)
+- Add equivalent fraction drills.
+- Add comparison/order exercises.
+- Add simple number-line placement interactions (tap/select v1).
+
+**Acceptance criteria**
+- Correctness engine supports equivalent representations.
+- Session history records sub-mode metadata.
+- Tests verify equivalence and comparison logic.
+
+### Phase 4 — Decimals Bridge (Sprint 4)
+- Add conversion drills between common fractions and decimals.
+- Add money-context word problems.
+- Expand review explanations for conversion mistakes.
+
+**Acceptance criteria**
+- Decimal conversion accuracy is tracked in session data.
+- Common conversions (1/2, 1/4, 3/4, tenths, hundredths) are covered.
+- Tests validate conversion generation and grading.
+
+### Phase 5 — Mixed Mastery (Sprint 5+)
+- Add blended challenge sessions across all learned concepts.
+- Add progression logic to unlock phases based on mastery thresholds.
+- Add weak-area targeting in mixed sessions.
+
+**Acceptance criteria**
+- Mixed sessions include diverse question types with balanced pacing.
+- Unlock/progression state persists safely across app restarts.
+- Tests verify unlock thresholds and mixed-set distribution.
 
 ---
 
-## 3) First recommended feature to implement next
+## Cross-Cutting Technical Work
+- Add/extend schema versioning for new curriculum state fields.
+- Keep generation logic in domain modules with unit tests first.
+- Maintain mobile-first UX (large targets, clear labels, reduced-motion support).
+- Ensure review mode remains read-only and comprehensible for parents/kids.
 
-## **Feature: Difficulty + Grade-Aware Problem Generation (v1)**
-
-Why this should be first:
-- Already implied in `docs/UX_PLAN.md` (grade + difficulty quick picks).
-- High user impact with moderate implementation scope.
-- Creates clean foundation for adaptive learning and profile features.
-- Minimal product risk because it extends existing equation generation behavior.
-
-### Acceptance criteria
-1. **UI controls**
-   - Home/start section includes:
-     - Difficulty selector: Easy / Medium / Hard
-     - Grade selector: K-2 / 3-4 / 5+
-   - Controls are disabled/locked while a session is active (same behavior as operation lock).
-
-2. **Generation behavior**
-   - Equation ranges vary deterministically by `{operation, grade, difficulty}` profile.
-   - Subtraction never produces negative answers in v1 unless explicitly configured.
-   - Multiplication ranges scale with difficulty (e.g., 1-5, 1-10, 1-12+).
-
-3. **Persistence/session model**
-   - Saved session includes `difficulty` and `gradeBand` fields.
-   - Review/history UI shows the selected profile for each session.
-
-4. **Testing**
-   - Unit tests for generation profile mapping per operation.
-   - Integration tests confirming selected controls affect generated equations.
-   - Existing tests remain green.
-
-5. **Docs**
-   - Update `README.md` features list and `docs/UX_PLAN.md`.
-   - Add/mark relevant items in `docs/TASKS.md`.
-
-Definition of done:
-- All CI checks pass.
-- No regression in existing session history/review/deletion flow.
-- Manual sanity check on mobile viewport confirms usability of new controls.
+## Definition of Done (per phase)
+- `npm run test:ci` passes.
+- README + docs updates are included.
+- No regression in existing operation practice or history/review flows.
+- Manual mobile sanity pass completed.

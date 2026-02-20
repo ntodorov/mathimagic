@@ -5,6 +5,9 @@ import {
   DEFAULT_DIFFICULTY,
   DEFAULT_GRADE_BAND,
   generateOperationSet,
+  evaluateQuestionAnswer,
+  formatCorrectAnswer,
+  buildReviewExplanation,
 } from './domain/generation';
 
 function buildOperation(type, gradeBand, difficulty) {
@@ -120,37 +123,52 @@ const EquationList = ({
   }, [operation.equations, currentIndex, activateQuestionTiming]);
 
   const handleAnswerChange = React.useCallback((id, payload) => {
+    const question = operation.equations.find((eq) => eq.id === id);
+    if (!question) {
+      return;
+    }
+    const evaluated = evaluateQuestionAnswer(question, payload?.value ?? '');
     setAnswers((prev) => ({
       ...prev,
-      [id]: payload,
+      [id]: evaluated,
     }));
-  }, []);
+  }, [operation.equations]);
 
   const buildSessionQuestions = React.useCallback(() => (
     operation.equations.map((eq) => {
-      const entry = answers[eq.id];
+      const entry = answers[eq.id] ?? evaluateQuestionAnswer(eq, '');
       const rawValue = entry?.value ?? '';
-      const trimmedValue = String(rawValue).trim();
-      const hasAnswer = trimmedValue !== '';
-      const isCorrect = hasAnswer && Number(trimmedValue) === eq.solution;
+      const normalizedValue = entry?.normalizedValue ?? String(rawValue).trim();
+      const hasAnswer = Boolean(entry?.hasAnswer);
+      const isCorrect = Boolean(entry?.isCorrect);
 
       const timing = questionTimingRef.current[eq.id] ?? {};
       const perQuestionDurationMs = Math.max(0, Math.round(Number(timing.durationMs) || 0));
+      const explanation = hasAnswer && !isCorrect
+        ? buildReviewExplanation(eq, normalizedValue || rawValue)
+        : null;
 
       return {
         id: eq.id,
-        x: eq.x,
-        y: eq.y,
-        operation: eq.operation,
+        x: eq.x ?? null,
+        y: eq.y ?? null,
+        operation: eq.operation ?? null,
+        sourceMode: eq.sourceMode ?? operation.type,
+        prompt: eq.prompt ?? `${eq.x} ${eq.operation} ${eq.y} =`,
+        visualPrompt: eq.visualPrompt ?? null,
+        contextPrompt: eq.contextPrompt ?? null,
+        answerType: eq.answerType ?? 'number',
         solution: eq.solution,
-        answer: trimmedValue,
+        correctAnswerText: formatCorrectAnswer(eq),
+        answer: hasAnswer ? normalizedValue : '',
         hasAnswer,
         isCorrect,
+        explanation,
         firstShownAt: timing.firstShownAt ?? null,
         perQuestionDurationMs,
       };
     })
-  ), [operation.equations, answers]);
+  ), [operation.equations, operation.type, answers]);
 
   const handleReset = React.useCallback(() => {
     if (onNewSession) {

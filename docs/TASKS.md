@@ -28,3 +28,12 @@ Follow this rule when updating task status:
 21. Add division practice mode with clean integer answers. - done
 22. Redesign challenge selector as 2x2 color-coded grid for four operations. - done
 23. Extend tests for division practice. - done
+24. Add Division Bridge mode with remainder-aware generation and scoring. - done
+25. Add Fractions mode (fractions-as-division) with visual and symbolic prompts. - done
+26. Add Fraction Sense mode (equivalent/compare/order/number line). - done
+27. Add Decimals Bridge mode (fraction-decimal conversions + money context). - done
+28. Add Mixed Mastery mode blending operations, fractions, and decimals. - done
+29. Add curriculum progression state (unlock next phase after threshold mastery). - done
+30. Add domain generators and tests for all post-division phases. - done
+31. Add review explanations for fraction/decimal mistakes. - done
+32. Update docs and onboarding copy for new curriculum modes. - done

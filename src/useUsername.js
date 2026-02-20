@@ -1,11 +1,18 @@
-import { useState, useCallback } from 'react';
+import {
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
 import {
   defaultResults,
+  readCurriculumState,
   readResults,
   readSessions,
+  writeCurriculumState,
   writeResults,
   writeSessions,
 } from './storageSchema';
+import { deriveCurriculumState } from './domain/curriculum/progression';
 
 const STORAGE_KEY = 'mathimagic_username';
 
@@ -75,6 +82,13 @@ const calculateResults = (sessions) => sessions.reduce((totals, session) => {
 export function useResults() {
   const [results, setResultsState] = useState(() => readResults());
   const [sessions, setSessionsState] = useState(() => readSessions());
+  const [curriculumState, setCurriculumState] = useState(() => {
+    const persistedState = readCurriculumState();
+    const derivedState = deriveCurriculumState(readSessions(), persistedState);
+    writeCurriculumState(derivedState);
+    return derivedState;
+  });
+  const curriculumStateRef = useRef(curriculumState);
 
   const recordSession = useCallback((sessionResults) => {
     const attempted = Number(sessionResults.attempted) || 0;
@@ -108,6 +122,10 @@ export function useResults() {
     setSessionsState((prev) => {
       const updatedSessions = [normalizedSession, ...prev];
       writeSessions(updatedSessions);
+      const nextCurriculumState = deriveCurriculumState(updatedSessions, curriculumStateRef.current);
+      curriculumStateRef.current = nextCurriculumState;
+      setCurriculumState(nextCurriculumState);
+      writeCurriculumState(nextCurriculumState);
       return updatedSessions;
     });
   }, []);
@@ -126,6 +144,10 @@ export function useResults() {
       setResultsState(updatedResults);
       writeResults(updatedResults);
       writeSessions(updatedSessions);
+      const nextCurriculumState = deriveCurriculumState(updatedSessions, curriculumStateRef.current);
+      curriculumStateRef.current = nextCurriculumState;
+      setCurriculumState(nextCurriculumState);
+      writeCurriculumState(nextCurriculumState);
       return updatedSessions;
     });
   }, []);
@@ -134,11 +156,22 @@ export function useResults() {
     const initial = defaultResults();
     writeResults(initial);
     writeSessions([]);
+    const resetCurriculumState = deriveCurriculumState([], curriculumStateRef.current);
+    curriculumStateRef.current = resetCurriculumState;
+    setCurriculumState(resetCurriculumState);
+    writeCurriculumState(resetCurriculumState);
     setResultsState(initial);
     setSessionsState([]);
   }, []);
 
-  return { results, sessions, recordSession, deleteSession, resetResults };
+  return {
+    results,
+    sessions,
+    curriculumState,
+    recordSession,
+    deleteSession,
+    resetResults,
+  };
 }
 
 export { generateRandomUsername };

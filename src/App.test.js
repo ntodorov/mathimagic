@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App, { getInitialChallengeSelections } from './App';
+import { storageKeys } from './storageSchema';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -284,4 +285,76 @@ test('uses auto scrolling when reduced motion is preferred', async () => {
     window.matchMedia = originalMatchMedia;
     window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
   }
+});
+
+test('shows post-division modes as locked at the start of progression', () => {
+  render(<App />);
+
+  expect(screen.getByRole('button', { name: /practice division bridge/i })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /practice fractions/i })).toBeDisabled();
+  expect(screen.getByText(/Next unlock: Division Bridge/i)).toBeInTheDocument();
+});
+
+test('unlocks division bridge when division mastery threshold is met', () => {
+  window.localStorage.setItem(
+    storageKeys.SESSIONS_KEY,
+    JSON.stringify({
+      version: 1,
+      data: [
+        { id: 'd1', operationType: 'division', attempted: 8, correct: 7, completed: true },
+        { id: 'd2', operationType: 'division', attempted: 7, correct: 6, completed: true },
+      ],
+    })
+  );
+
+  render(<App />);
+
+  expect(screen.getByRole('button', { name: /practice division bridge/i })).not.toBeDisabled();
+});
+
+test('shows review explanation text for incorrect fraction and decimal answers', async () => {
+  const user = userEvent.setup();
+
+  window.localStorage.setItem(
+    storageKeys.SESSIONS_KEY,
+    JSON.stringify({
+      version: 1,
+      data: [
+        {
+          id: 'fractions-1',
+          operationType: 'fractions',
+          correct: 0,
+          attempted: 2,
+          total: 2,
+          completed: true,
+          questions: [
+            {
+              id: 1,
+              prompt: 'Write 1 ÷ 2 as a fraction in simplest form.',
+              answerType: 'fraction',
+              solution: { numerator: 1, denominator: 2 },
+              answer: '2/1',
+              hasAnswer: true,
+              isCorrect: false,
+            },
+            {
+              id: 2,
+              prompt: 'Convert 3/4 to a decimal.',
+              answerType: 'decimal',
+              solution: 0.75,
+              answer: '7.5',
+              hasAnswer: true,
+              isCorrect: false,
+            },
+          ],
+        },
+      ],
+    })
+  );
+
+  render(<App />);
+
+  await user.click(screen.getByRole('button', { name: /review answers/i }));
+
+  expect(screen.getAllByText(/Why it missed:/i).length).toBeGreaterThanOrEqual(2);
 });

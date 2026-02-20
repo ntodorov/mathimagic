@@ -9,7 +9,12 @@ describe('generation profiles', () => {
   test('defines profile entries for all supported operations', () => {
     expect(Object.keys(OPERATION_PROFILE_CONFIG).sort()).toEqual([
       'addition',
+      'decimals-bridge',
       'division',
+      'division-bridge',
+      'fraction-sense',
+      'fractions',
+      'mixed-mastery',
       'multiplication',
       'subtraction',
     ]);
@@ -38,6 +43,37 @@ describe('generation profiles', () => {
       symbol: '÷',
       divisor: { min: 1, max: 5 },
       quotient: { min: 1, max: 5 },
+    }));
+  });
+
+  test('resolves post-division profiles', () => {
+    const divisionBridge = resolveProfile('division-bridge', 'k-2', 'easy');
+    const fractions = resolveProfile('fractions', 'k-2', 'easy');
+    const fractionSense = resolveProfile('fraction-sense', 'k-2', 'easy');
+    const decimalsBridge = resolveProfile('decimals-bridge', 'k-2', 'easy');
+    const mixedMastery = resolveProfile('mixed-mastery', 'k-2', 'easy');
+
+    expect(divisionBridge).toEqual(expect.objectContaining({
+      name: 'Division Bridge',
+      symbol: '÷',
+      divisor: expect.any(Object),
+      remainder: expect.any(Object),
+    }));
+    expect(fractions).toEqual(expect.objectContaining({
+      name: 'Fractions',
+      divisorChoices: expect.any(Array),
+    }));
+    expect(fractionSense).toEqual(expect.objectContaining({
+      name: 'Fraction Sense',
+      denominatorPool: expect.any(Array),
+    }));
+    expect(decimalsBridge).toEqual(expect.objectContaining({
+      name: 'Decimals Bridge',
+      conversionFractions: expect.any(Array),
+    }));
+    expect(mixedMastery).toEqual(expect.objectContaining({
+      name: 'Mixed Mastery',
+      blendModes: expect.any(Array),
     }));
   });
 

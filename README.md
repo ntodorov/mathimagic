@@ -14,10 +14,17 @@ GitHub Pages deployment: https://ntodorov.github.io/mathimagic
 - Single-question practice flow with Next/Enter and Done navigation
 - Results shown after ending a session or in review mode
 - Addition, subtraction, multiplication, and division practice sessions
+- Division Bridge mode with quotient/remainder (`q R r`) scoring and sharing-story prompts
+- Fractions mode (division-to-fraction) with visual + symbolic prompts
+- Fraction Sense mode with equivalent, compare, order, and number-line prompts
+- Decimals Bridge mode with fraction/decimal conversion and money context questions
+- Mixed Mastery sets blending operations, fractions, and decimals
+- Curriculum progression that unlocks post-division modes after mastery thresholds
 - Challenge selections (operation and difficulty) are remembered across refreshes/tabs
 - New browsers default to Addition when no saved challenge exists
 - Clear selected-state highlight in challenge picker
 - Session history with read-only review of past answers
+- Review explanations for missed fraction/decimal questions
 - Session and per-question timing shown in history/review when available
 - Sessions only saved after at least one answer
 - Delete past sessions from history

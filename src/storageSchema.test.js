@@ -1,9 +1,11 @@
 import {
   defaultResults,
   getStorageSchemaVersion,
+  readCurriculumState,
   readResults,
   readSessions,
   storageKeys,
+  writeCurriculumState,
   writeResults,
   writeSessions,
 } from './storageSchema';
@@ -31,9 +33,11 @@ describe('storage schema versioning', () => {
   test('writes versioned envelope for results and sessions', () => {
     writeResults({ totalCorrect: 3, totalAttempted: 5, sessionsCompleted: 1 }, storage);
     writeSessions([{ id: 's1', correct: 3, attempted: 5 }], storage);
+    writeCurriculumState({ unlockedModes: ['addition', 'fractions'] }, storage);
 
     const resultsPayload = JSON.parse(storage.getItem(storageKeys.RESULTS_KEY));
     const sessionsPayload = JSON.parse(storage.getItem(storageKeys.SESSIONS_KEY));
+    const curriculumPayload = JSON.parse(storage.getItem(storageKeys.CURRICULUM_STATE_KEY));
 
     expect(resultsPayload.version).toBe(getStorageSchemaVersion());
     expect(resultsPayload.data).toEqual({ totalCorrect: 3, totalAttempted: 5, sessionsCompleted: 1 });
@@ -53,6 +57,12 @@ describe('storage schema versioning', () => {
         questions: [],
       },
     ]);
+    expect(curriculumPayload.version).toBe(getStorageSchemaVersion());
+    expect(curriculumPayload.data).toEqual(expect.objectContaining({
+      unlockedModes: expect.arrayContaining(['addition', 'fractions']),
+      masteryByMode: expect.any(Object),
+      weakModes: expect.any(Array),
+    }));
   });
 
   test('migrates legacy unversioned payloads and backfills missing fields', () => {
@@ -91,12 +101,15 @@ describe('storage schema versioning', () => {
   test('returns safe defaults for corrupted payloads', () => {
     storage.setItem(storageKeys.RESULTS_KEY, '{not-json');
     storage.setItem(storageKeys.SESSIONS_KEY, 'boom');
+    storage.setItem(storageKeys.CURRICULUM_STATE_KEY, 'oops');
 
     const results = readResults(storage);
     const sessions = readSessions(storage);
+    const curriculumState = readCurriculumState(storage);
 
     expect(results).toEqual(defaultResults());
     expect(sessions).toEqual([]);
+    expect(curriculumState.unlockedModes).toEqual(expect.arrayContaining(['addition', 'division']));
 
     expect(JSON.parse(storage.getItem(storageKeys.RESULTS_KEY))).toEqual({
       version: getStorageSchemaVersion(),
@@ -106,6 +119,14 @@ describe('storage schema versioning', () => {
       version: getStorageSchemaVersion(),
       data: [],
     });
+    expect(JSON.parse(storage.getItem(storageKeys.CURRICULUM_STATE_KEY))).toEqual(
+      expect.objectContaining({
+        version: getStorageSchemaVersion(),
+        data: expect.objectContaining({
+          unlockedModes: expect.arrayContaining(['addition', 'division']),
+        }),
+      })
+    );
   });
 
   test('sanitizes invalid versioned data payloads', () => {
@@ -136,5 +157,17 @@ describe('storage schema versioning', () => {
         questions: [{ prompt: '2+2', perQuestionDurationMs: 0, firstShownAt: null }],
       },
     ]);
+
+    storage.setItem(
+      storageKeys.CURRICULUM_STATE_KEY,
+      JSON.stringify({
+        version: getStorageSchemaVersion(),
+        data: { unlockedModes: ['fractions'], masteryByMode: { division: { masteryHits: 'x' } } },
+      })
+    );
+
+    const curriculumState = readCurriculumState(storage);
+    expect(curriculumState.unlockedModes).toEqual(expect.arrayContaining(['addition', 'division', 'fractions']));
+    expect(curriculumState.masteryByMode.division.masteryHits).toBe(0);
   });
 });

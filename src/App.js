@@ -2,11 +2,21 @@ import * as React from 'react';
 import EquationList from './EquationList';
 import ButtonAppBar from './ButtonAppBar';
 import { useUsername, useResults } from './useUsername';
-import { DEFAULT_OPERATION, OPERATION_OPTIONS, getOperationOption } from './operations';
+import {
+  DEFAULT_OPERATION,
+  OPERATION_OPTIONS,
+  POST_DIVISION_MODE_IDS,
+  getOperationOption,
+} from './operations';
 import {
   DEFAULT_DIFFICULTY,
   DIFFICULTY_OPTIONS,
+  formatCorrectAnswer,
+  buildReviewExplanation,
 } from './domain/generation';
+import {
+  CURRICULUM_UNLOCK_SEQUENCE,
+} from './domain/curriculum/progression';
 import packageJson from '../package.json';
 
 const PRACTICE_SECTION_ID = 'practice-section';
@@ -67,7 +77,13 @@ const getInitialChallengeSelections = () => {
 
 function App() {
   const { username, regenerateUsername } = useUsername();
-  const { results, sessions, recordSession, deleteSession } = useResults();
+  const {
+    results,
+    sessions,
+    curriculumState,
+    recordSession,
+    deleteSession,
+  } = useResults();
   const initialSelections = React.useMemo(() => getInitialChallengeSelections(), []);
   const [selectedOperation, setSelectedOperation] = React.useState(initialSelections.operation);
   const [selectedDifficulty, setSelectedDifficulty] = React.useState(initialSelections.difficulty);
@@ -79,6 +95,34 @@ function App() {
   const scrollTimeoutRef = React.useRef(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
   const sessionActive = Boolean(activeSession);
+  const unlockedModes = Array.isArray(curriculumState?.unlockedModes)
+    ? curriculumState.unlockedModes
+    : [DEFAULT_OPERATION];
+  const unlockedModeSet = React.useMemo(() => new Set(unlockedModes), [unlockedModes]);
+  const selectedModeUnlocked = unlockedModeSet.has(selectedOperation);
+  const masteryByMode = curriculumState?.masteryByMode ?? {};
+  const thresholds = curriculumState?.thresholds ?? {};
+  const nextLockedMode = CURRICULUM_UNLOCK_SEQUENCE.find(({ mode }) => !unlockedModeSet.has(mode)) ?? null;
+  const nextLockedPrerequisite = nextLockedMode
+    ? getOperationOption(nextLockedMode.prerequisite)
+    : null;
+  const nextLockedOption = nextLockedMode ? getOperationOption(nextLockedMode.mode) : null;
+  const unlockedPostDivisionCount = POST_DIVISION_MODE_IDS
+    .filter((modeId) => unlockedModeSet.has(modeId))
+    .length;
+  const prerequisiteStats = nextLockedMode
+    ? masteryByMode[nextLockedMode.prerequisite]
+    : null;
+  const requiredHits = Number(thresholds.masteryRequiredHits) || 2;
+
+  React.useEffect(() => {
+    if (unlockedModeSet.has(selectedOperation)) {
+      return;
+    }
+    const fallbackOperation = OPERATION_OPTIONS.find((option) => unlockedModeSet.has(option.id))?.id
+      ?? DEFAULT_OPERATION;
+    setSelectedOperation(fallbackOperation);
+  }, [selectedOperation, unlockedModeSet]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') {
@@ -117,6 +161,9 @@ function App() {
   }, []);
 
   const handleStartPractice = React.useCallback(() => {
+    if (!unlockedModeSet.has(selectedOperation)) {
+      return;
+    }
     const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     sessionFinalizedRef.current = false;
     setReviewSessionId(null);
@@ -138,7 +185,7 @@ function App() {
         block: 'start',
       });
     }, 100);
-  }, [selectedOperation, selectedDifficulty, prefersReducedMotion]);
+  }, [selectedOperation, selectedDifficulty, prefersReducedMotion, unlockedModeSet]);
 
   React.useEffect(() => () => {
     if (scrollTimeoutRef.current) {
@@ -260,6 +307,7 @@ function App() {
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     {OPERATION_OPTIONS.map((option) => {
                       const isActive = option.id === selectedOperation;
+                      const isUnlocked = unlockedModeSet.has(option.id);
                       const colorMap = {
                         green: {
                           active: 'border-green-500 bg-green-50 ring-4 ring-green-200 shadow-md scale-[1.02]',
@@ -293,17 +341,70 @@ function App() {
                           text: 'text-sky-700',
                           textIdle: 'text-sky-600/80',
                         },
+                        teal: {
+                          active: 'border-teal-500 bg-teal-50 ring-4 ring-teal-200 shadow-md scale-[1.02]',
+                          idle: 'border-teal-200 bg-white/80 hover:border-teal-300 hover:bg-teal-50/50',
+                          symbol: 'bg-teal-100 text-teal-600',
+                          symbolActive: 'bg-teal-500 text-white',
+                          text: 'text-teal-700',
+                          textIdle: 'text-teal-600/80',
+                        },
+                        fuchsia: {
+                          active: 'border-fuchsia-500 bg-fuchsia-50 ring-4 ring-fuchsia-200 shadow-md scale-[1.02]',
+                          idle: 'border-fuchsia-200 bg-white/80 hover:border-fuchsia-300 hover:bg-fuchsia-50/50',
+                          symbol: 'bg-fuchsia-100 text-fuchsia-600',
+                          symbolActive: 'bg-fuchsia-500 text-white',
+                          text: 'text-fuchsia-700',
+                          textIdle: 'text-fuchsia-600/80',
+                        },
+                        cyan: {
+                          active: 'border-cyan-500 bg-cyan-50 ring-4 ring-cyan-200 shadow-md scale-[1.02]',
+                          idle: 'border-cyan-200 bg-white/80 hover:border-cyan-300 hover:bg-cyan-50/50',
+                          symbol: 'bg-cyan-100 text-cyan-600',
+                          symbolActive: 'bg-cyan-500 text-white',
+                          text: 'text-cyan-700',
+                          textIdle: 'text-cyan-600/80',
+                        },
+                        lime: {
+                          active: 'border-lime-500 bg-lime-50 ring-4 ring-lime-200 shadow-md scale-[1.02]',
+                          idle: 'border-lime-200 bg-white/80 hover:border-lime-300 hover:bg-lime-50/50',
+                          symbol: 'bg-lime-100 text-lime-700',
+                          symbolActive: 'bg-lime-500 text-white',
+                          text: 'text-lime-700',
+                          textIdle: 'text-lime-700/80',
+                        },
+                        slate: {
+                          active: 'border-slate-500 bg-slate-50 ring-4 ring-slate-200 shadow-md scale-[1.02]',
+                          idle: 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-slate-50/50',
+                          symbol: 'bg-slate-100 text-slate-600',
+                          symbolActive: 'bg-slate-500 text-white',
+                          text: 'text-slate-700',
+                          textIdle: 'text-slate-600/80',
+                        },
                       };
                       const colors = colorMap[option.color] ?? colorMap.green;
+                      const lockSequence = CURRICULUM_UNLOCK_SEQUENCE.find(({ mode }) => mode === option.id);
+                      const unlockHint = lockSequence
+                        ? `Unlock after mastering ${getOperationOption(lockSequence.prerequisite).label}`
+                        : null;
                       return (
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => setSelectedOperation(option.id)}
+                          onClick={() => {
+                            if (isUnlocked) {
+                              setSelectedOperation(option.id);
+                            }
+                          }}
                           aria-pressed={isActive}
+                          disabled={!isUnlocked}
                           aria-label={`Practice ${option.label}`}
                           className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 font-bold transition-all ${
                             isActive ? colors.active : colors.idle
+                          } ${
+                            isUnlocked
+                              ? ''
+                              : 'cursor-not-allowed border-dashed border-slate-300 bg-slate-100/80 opacity-70'
                           }`}
                         >
                           <span
@@ -321,10 +422,63 @@ function App() {
                               ✓ Selected
                             </span>
                           )}
+                          {!isUnlocked && unlockHint && (
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                              🔒 {unlockHint}
+                            </span>
+                          )}
                         </button>
                       );
                     })}
                   </div>
+                  <div className="mt-3 rounded-xl border border-indigo-100 bg-white/80 p-3">
+                    <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
+                      Curriculum Path
+                    </p>
+                    <p className="mt-1 text-xs text-indigo-700">
+                      New bridge modes unlock after mastery streaks. Aim for
+                      {' '}
+                      {Math.round((Number(thresholds.masteryMinAccuracy) || 0.75) * 100)}
+                      % accuracy with at least
+                      {' '}
+                      {Number(thresholds.masteryMinAttempted) || 6}
+                      {' '}
+                      answered.
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-indigo-700">
+                      Unlocked advanced modes: {unlockedPostDivisionCount}/{POST_DIVISION_MODE_IDS.length}
+                    </p>
+                    {nextLockedMode ? (
+                      <p className="mt-2 text-xs font-semibold text-indigo-700">
+                        Next unlock: {nextLockedOption?.label ?? nextLockedMode.mode} after
+                        {' '}
+                        {requiredHits}
+                        {' '}
+                        mastery sessions in {nextLockedPrerequisite?.label ?? nextLockedMode.prerequisite}
+                        {' '}
+                        ({Math.min(requiredHits, Number(prerequisiteStats?.masteryHits) || 0)}/{requiredHits}).
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-xs font-semibold text-emerald-700">
+                        All curriculum modes unlocked.
+                      </p>
+                    )}
+                    {Array.isArray(curriculumState?.weakModes) && curriculumState.weakModes.length > 0 && (
+                      <p className="mt-2 text-xs text-amber-700">
+                        Focus next:
+                        {' '}
+                        {curriculumState.weakModes
+                          .map((modeId) => getOperationOption(modeId).label)
+                          .join(', ')}
+                        .
+                      </p>
+                    )}
+                  </div>
+                  {!selectedModeUnlocked && (
+                    <p className="mt-2 text-xs font-semibold text-rose-600">
+                      Selected mode is locked. Choose an unlocked challenge first.
+                    </p>
+                  )}
                   <div className="mt-3 grid grid-cols-1 gap-2">
                     <label className="flex flex-col gap-1">
                       <span className="text-xs font-bold uppercase tracking-wide text-indigo-500">
@@ -369,8 +523,9 @@ function App() {
               {!sessionActive && (
                 <button
                   type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 px-5 py-4 text-lg font-bold text-white shadow-lg transition transform hover:scale-105 hover:shadow-xl focus-visible:ring-4 focus-visible:ring-purple-300"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 px-5 py-4 text-lg font-bold text-white shadow-lg transition transform hover:scale-105 hover:shadow-xl focus-visible:ring-4 focus-visible:ring-purple-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
                   onClick={handleStartPractice}
+                  disabled={!selectedModeUnlocked}
                   aria-controls={PRACTICE_SECTION_ID}
                 >
                   <span className="text-2xl">🚀</span>
@@ -551,6 +706,11 @@ function App() {
                       const isCorrect = typeof question.isCorrect === 'boolean'
                         ? question.isCorrect
                         : hasAnswer && Number(answerText) === Number(question.solution);
+                      const promptText = question.prompt
+                        ?? `${question.x} ${question.operation ?? reviewOption?.symbol ?? ''} ${question.y} =`;
+                      const correctAnswerText = question.correctAnswerText ?? formatCorrectAnswer(question);
+                      const explanation = question.explanation
+                        ?? (hasAnswer && !isCorrect ? buildReviewExplanation(question, answerText) : null);
                       const statusLabel = isCorrect ? 'Correct' : hasAnswer ? 'Incorrect' : 'Skipped';
                       const statusClass = isCorrect
                         ? 'text-green-600'
@@ -562,7 +722,6 @@ function App() {
                         : hasAnswer
                           ? 'border-rose-200 bg-rose-50'
                           : 'border-slate-200 bg-white';
-                      const operationSymbol = question.operation ?? reviewOption?.symbol ?? '';
                       const questionDuration = formatDuration(question.perQuestionDurationMs);
 
                       return (
@@ -572,12 +731,18 @@ function App() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <p className="text-sm font-bold text-slate-700">
-                              {question.x} {operationSymbol} {question.y} =
+                              {promptText}
                             </p>
                             <span className={`text-xs font-bold uppercase ${statusClass}`}>
                               {statusLabel}
                             </span>
                           </div>
+                          {question.visualPrompt && (
+                            <p className="mt-2 text-xs font-semibold text-indigo-600">{question.visualPrompt}</p>
+                          )}
+                          {question.contextPrompt && (
+                            <p className="mt-1 text-xs text-slate-600">{question.contextPrompt}</p>
+                          )}
                           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
                             <p>
                               Kid's Answer:{' '}
@@ -588,7 +753,7 @@ function App() {
                             <p>
                               Correct Answer:{' '}
                               <span className="font-semibold text-slate-700">
-                                {question.solution}
+                                {correctAnswerText || question.solution}
                               </span>
                             </p>
                             {questionDuration && (
@@ -600,6 +765,11 @@ function App() {
                               </p>
                             )}
                           </div>
+                          {explanation && (
+                            <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-700">
+                              Why it missed: {explanation}
+                            </p>
+                          )}
                         </li>
                       );
                     })}
