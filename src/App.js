@@ -14,14 +14,14 @@ import {
   formatCorrectAnswer,
   buildReviewExplanation,
 } from './domain/generation';
-import * as progression from './domain/curriculum/progression';
+import {
+  CURRICULUM_UNLOCK_SEQUENCE,
+} from './domain/curriculum/progression';
 import {
   CORE_ADAPTIVE_OPERATION_IDS,
   deriveWeakFactsByOperation,
 } from './domain/adaptive/weakFacts';
 import packageJson from '../package.json';
-
-const { CURRICULUM_UNLOCK_SEQUENCE } = progression;
 
 const PRACTICE_SECTION_ID = 'practice-section';
 const CHALLENGE_SELECTIONS_KEY = 'mathimagic_challenge_selections';

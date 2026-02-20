@@ -1,10 +1,10 @@
-const {
+import {
   DEFAULT_GRADE_BAND,
   DEFAULT_DIFFICULTY,
   DEFAULT_QUESTION_COUNT,
   resolveProfile,
-} = require('./profiles');
-const { simplifyFraction } = require('./answers');
+} from './profiles';
+import { simplifyFraction } from './answers';
 
 const ADAPTIVE_CORE_MODES = ['addition', 'subtraction', 'multiplication', 'division'];
 
@@ -590,7 +590,7 @@ function generateOperationSet({
   };
 }
 
-module.exports = {
+export {
   generateOperationSet,
   generateEquation,
   randomIntInclusive,

@@ -1,8 +1,8 @@
-const {
+import {
   evaluateQuestionAnswer,
   formatCorrectAnswer,
   buildReviewExplanation,
-} = require('./answers');
+} from './answers';
 
 describe('question answer evaluation', () => {
   test('evaluates remainder answers using quotient + remainder format', () => {

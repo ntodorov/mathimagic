@@ -410,7 +410,7 @@ function buildReviewExplanation(question, userAnswer) {
   return 'Review the operation and try one step at a time.';
 }
 
-module.exports = {
+export {
   evaluateQuestionAnswer,
   formatCorrectAnswer,
   buildReviewExplanation,

@@ -1,4 +1,4 @@
-const { deriveWeakFactsByOperation } = require('./weakFacts');
+import { deriveWeakFactsByOperation } from './weakFacts';
 
 function buildQuestion(overrides = {}) {
   return {

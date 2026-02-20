@@ -12,7 +12,7 @@ import {
   writeResults,
   writeSessions,
 } from './storageSchema';
-const { deriveCurriculumState } = require('./domain/curriculum/progression');
+import { deriveCurriculumState } from './domain/curriculum/progression';
 
 const STORAGE_KEY = 'mathimagic_username';
 

@@ -119,7 +119,7 @@ function deriveWeakFactsByOperation(sessions, options = {}) {
   return result;
 }
 
-module.exports = {
+export {
   CORE_ADAPTIVE_OPERATION_IDS,
   deriveWeakFactsByOperation,
 };

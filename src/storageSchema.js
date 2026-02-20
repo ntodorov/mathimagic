@@ -1,7 +1,7 @@
-const {
+import {
   defaultCurriculumState,
   normalizeCurriculumState,
-} = require('./domain/curriculum/progression');
+} from './domain/curriculum/progression';
 
 const STORAGE_SCHEMA_VERSION = 1;
 

@@ -1,4 +1,4 @@
-const { generateOperationSet } = require('./generateOperationSet');
+import { generateOperationSet } from './generateOperationSet';
 
 describe('generateOperationSet', () => {
   test('creates deterministic addition output with injected rng', () => {

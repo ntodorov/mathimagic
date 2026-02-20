@@ -265,7 +265,7 @@ function resolveProfile(operation, gradeBand = DEFAULT_GRADE_BAND, difficulty = 
   return gradeBandProfiles[difficulty] ?? gradeBandProfiles[DEFAULT_DIFFICULTY];
 }
 
-module.exports = {
+export {
   DEFAULT_GRADE_BAND,
   DEFAULT_DIFFICULTY,
   DEFAULT_QUESTION_COUNT,

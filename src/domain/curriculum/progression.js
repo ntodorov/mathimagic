@@ -181,7 +181,7 @@ function isModeUnlocked(modeId, curriculumState) {
   return normalized.unlockedModes.includes(modeId);
 }
 
-module.exports = {
+export {
   CORE_MODE_IDS,
   CURRICULUM_UNLOCK_SEQUENCE,
   MASTERY_MIN_ACCURACY,

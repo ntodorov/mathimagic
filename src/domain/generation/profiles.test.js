@@ -1,9 +1,9 @@
-const {
+import {
   OPERATION_PROFILE_CONFIG,
   resolveProfile,
   DEFAULT_GRADE_BAND,
   DEFAULT_DIFFICULTY,
-} = require('./profiles');
+} from './profiles';
 
 describe('generation profiles', () => {
   test('defines profile entries for all supported operations', () => {

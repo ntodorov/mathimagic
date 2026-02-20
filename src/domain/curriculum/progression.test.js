@@ -1,10 +1,10 @@
-const {
+import {
   CORE_MODE_IDS,
   defaultCurriculumState,
   normalizeCurriculumState,
   deriveCurriculumState,
   isModeUnlocked,
-} = require('./progression');
+} from './progression';
 
 function buildSession({
   operationType,
