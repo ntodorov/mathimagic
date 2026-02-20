@@ -104,9 +104,12 @@ function App() {
     () => deriveWeakFactsByOperation(sessions),
     [sessions]
   );
-  const unlockedModes = Array.isArray(curriculumState?.unlockedModes)
-    ? curriculumState.unlockedModes
-    : [DEFAULT_OPERATION];
+  const unlockedModes = React.useMemo(
+    () => (Array.isArray(curriculumState?.unlockedModes)
+      ? curriculumState.unlockedModes
+      : [DEFAULT_OPERATION]),
+    [curriculumState]
+  );
   const unlockedModeSet = React.useMemo(() => new Set(unlockedModes), [unlockedModes]);
   const selectedModeUnlocked = unlockedModeSet.has(selectedOperation);
   const masteryByMode = curriculumState?.masteryByMode ?? {};
