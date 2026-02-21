@@ -28,6 +28,10 @@ const CHALLENGE_SELECTIONS_KEY = 'mathimagic_challenge_selections';
 const EMPTY_ADAPTIVE_FACTS = [];
 
 const isValidOption = (value, options) => options.some((option) => option.id === value);
+const getOperationIndex = (operationId) => {
+  const index = OPERATION_OPTIONS.findIndex((option) => option.id === operationId);
+  return index >= 0 ? index : 0;
+};
 
 const formatDuration = (durationMs) => {
   const normalized = Number(durationMs);
@@ -92,6 +96,7 @@ function App() {
   const initialSelections = React.useMemo(() => getInitialChallengeSelections(), []);
   const [selectedOperation, setSelectedOperation] = React.useState(initialSelections.operation);
   const [selectedDifficulty, setSelectedDifficulty] = React.useState(initialSelections.difficulty);
+  const [carouselIndex, setCarouselIndex] = React.useState(getOperationIndex(initialSelections.operation));
   const [activeSession, setActiveSession] = React.useState(null);
   const [sessionKey, setSessionKey] = React.useState(0);
   const [currentSessionStats, setCurrentSessionStats] = React.useState({ answered: 0, total: 10 });
@@ -135,6 +140,10 @@ function App() {
       ?? DEFAULT_OPERATION;
     setSelectedOperation(fallbackOperation);
   }, [selectedOperation, unlockedModeSet]);
+
+  React.useEffect(() => {
+    setCarouselIndex(getOperationIndex(selectedOperation));
+  }, [selectedOperation]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') {
@@ -251,6 +260,7 @@ function App() {
   }, [deleteSession]);
 
   const activeOption = getOperationOption(activeSession?.operationType ?? selectedOperation);
+  const currentCarouselOption = OPERATION_OPTIONS[carouselIndex] ?? OPERATION_OPTIONS[0];
   const selectedAdaptiveFacts = adaptiveFactsByOperation[selectedOperation] ?? EMPTY_ADAPTIVE_FACTS;
   const activeAdaptiveFacts = activeSession
     ? (adaptiveFactsByOperation[activeSession.operationType] ?? EMPTY_ADAPTIVE_FACTS)
@@ -322,132 +332,180 @@ function App() {
                   <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
                     Choose a Challenge
                   </p>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    {OPERATION_OPTIONS.map((option) => {
-                      const isActive = option.id === selectedOperation;
-                      const isUnlocked = unlockedModeSet.has(option.id);
-                      const colorMap = {
-                        green: {
-                          active: 'border-green-500 bg-green-50 ring-4 ring-green-200 shadow-md scale-[1.02]',
-                          idle: 'border-green-200 bg-white/80 hover:border-green-300 hover:bg-green-50/50',
-                          symbol: 'bg-green-100 text-green-600',
-                          symbolActive: 'bg-green-500 text-white',
-                          text: 'text-green-700',
-                          textIdle: 'text-green-600/80',
-                        },
-                        rose: {
-                          active: 'border-rose-500 bg-rose-50 ring-4 ring-rose-200 shadow-md scale-[1.02]',
-                          idle: 'border-rose-200 bg-white/80 hover:border-rose-300 hover:bg-rose-50/50',
-                          symbol: 'bg-rose-100 text-rose-600',
-                          symbolActive: 'bg-rose-500 text-white',
-                          text: 'text-rose-700',
-                          textIdle: 'text-rose-600/80',
-                        },
-                        amber: {
-                          active: 'border-amber-500 bg-amber-50 ring-4 ring-amber-200 shadow-md scale-[1.02]',
-                          idle: 'border-amber-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50',
-                          symbol: 'bg-amber-100 text-amber-600',
-                          symbolActive: 'bg-amber-500 text-white',
-                          text: 'text-amber-700',
-                          textIdle: 'text-amber-600/80',
-                        },
-                        sky: {
-                          active: 'border-sky-500 bg-sky-50 ring-4 ring-sky-200 shadow-md scale-[1.02]',
-                          idle: 'border-sky-200 bg-white/80 hover:border-sky-300 hover:bg-sky-50/50',
-                          symbol: 'bg-sky-100 text-sky-600',
-                          symbolActive: 'bg-sky-500 text-white',
-                          text: 'text-sky-700',
-                          textIdle: 'text-sky-600/80',
-                        },
-                        teal: {
-                          active: 'border-teal-500 bg-teal-50 ring-4 ring-teal-200 shadow-md scale-[1.02]',
-                          idle: 'border-teal-200 bg-white/80 hover:border-teal-300 hover:bg-teal-50/50',
-                          symbol: 'bg-teal-100 text-teal-600',
-                          symbolActive: 'bg-teal-500 text-white',
-                          text: 'text-teal-700',
-                          textIdle: 'text-teal-600/80',
-                        },
-                        fuchsia: {
-                          active: 'border-fuchsia-500 bg-fuchsia-50 ring-4 ring-fuchsia-200 shadow-md scale-[1.02]',
-                          idle: 'border-fuchsia-200 bg-white/80 hover:border-fuchsia-300 hover:bg-fuchsia-50/50',
-                          symbol: 'bg-fuchsia-100 text-fuchsia-600',
-                          symbolActive: 'bg-fuchsia-500 text-white',
-                          text: 'text-fuchsia-700',
-                          textIdle: 'text-fuchsia-600/80',
-                        },
-                        cyan: {
-                          active: 'border-cyan-500 bg-cyan-50 ring-4 ring-cyan-200 shadow-md scale-[1.02]',
-                          idle: 'border-cyan-200 bg-white/80 hover:border-cyan-300 hover:bg-cyan-50/50',
-                          symbol: 'bg-cyan-100 text-cyan-600',
-                          symbolActive: 'bg-cyan-500 text-white',
-                          text: 'text-cyan-700',
-                          textIdle: 'text-cyan-600/80',
-                        },
-                        lime: {
-                          active: 'border-lime-500 bg-lime-50 ring-4 ring-lime-200 shadow-md scale-[1.02]',
-                          idle: 'border-lime-200 bg-white/80 hover:border-lime-300 hover:bg-lime-50/50',
-                          symbol: 'bg-lime-100 text-lime-700',
-                          symbolActive: 'bg-lime-500 text-white',
-                          text: 'text-lime-700',
-                          textIdle: 'text-lime-700/80',
-                        },
-                        slate: {
-                          active: 'border-slate-500 bg-slate-50 ring-4 ring-slate-200 shadow-md scale-[1.02]',
-                          idle: 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-slate-50/50',
-                          symbol: 'bg-slate-100 text-slate-600',
-                          symbolActive: 'bg-slate-500 text-white',
-                          text: 'text-slate-700',
-                          textIdle: 'text-slate-600/80',
-                        },
-                      };
-                      const colors = colorMap[option.color] ?? colorMap.green;
-                      const lockSequence = CURRICULUM_UNLOCK_SEQUENCE.find(({ mode }) => mode === option.id);
-                      const unlockHint = lockSequence
-                        ? `Unlock after mastering ${getOperationOption(lockSequence.prerequisite).label}`
-                        : null;
-                      return (
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <button
+                        type="button"
+                        aria-label="Previous challenge"
+                        className="rounded-full border border-indigo-200 bg-white/90 px-3 py-1 text-sm font-bold text-indigo-600 disabled:opacity-40"
+                        onClick={() => setCarouselIndex((prev) => Math.max(0, prev - 1))}
+                        disabled={carouselIndex === 0}
+                      >
+                        ←
+                      </button>
+                      <p className="text-xs font-semibold text-indigo-500">
+                        {carouselIndex + 1} / {OPERATION_OPTIONS.length}
+                      </p>
+                      <button
+                        type="button"
+                        aria-label="Next challenge"
+                        className="rounded-full border border-indigo-200 bg-white/90 px-3 py-1 text-sm font-bold text-indigo-600 disabled:opacity-40"
+                        onClick={() => setCarouselIndex((prev) => Math.min(OPERATION_OPTIONS.length - 1, prev + 1))}
+                        disabled={carouselIndex === OPERATION_OPTIONS.length - 1}
+                      >
+                        →
+                      </button>
+                    </div>
+                    <div className="overflow-hidden rounded-2xl">
+                      <div
+                        className="flex transition-transform duration-300 ease-out"
+                        style={{ transform: `translateX(-${carouselIndex * 100}%)` }}
+                      >
+                        {OPERATION_OPTIONS.map((option) => {
+                          const isActive = option.id === selectedOperation;
+                          const isUnlocked = unlockedModeSet.has(option.id);
+                          const colorMap = {
+                            green: {
+                              active: 'border-green-500 bg-green-50 ring-4 ring-green-200 shadow-md scale-[1.02]',
+                              idle: 'border-green-200 bg-white/80 hover:border-green-300 hover:bg-green-50/50',
+                              symbol: 'bg-green-100 text-green-600',
+                              symbolActive: 'bg-green-500 text-white',
+                              text: 'text-green-700',
+                              textIdle: 'text-green-600/80',
+                            },
+                            rose: {
+                              active: 'border-rose-500 bg-rose-50 ring-4 ring-rose-200 shadow-md scale-[1.02]',
+                              idle: 'border-rose-200 bg-white/80 hover:border-rose-300 hover:bg-rose-50/50',
+                              symbol: 'bg-rose-100 text-rose-600',
+                              symbolActive: 'bg-rose-500 text-white',
+                              text: 'text-rose-700',
+                              textIdle: 'text-rose-600/80',
+                            },
+                            amber: {
+                              active: 'border-amber-500 bg-amber-50 ring-4 ring-amber-200 shadow-md scale-[1.02]',
+                              idle: 'border-amber-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50',
+                              symbol: 'bg-amber-100 text-amber-600',
+                              symbolActive: 'bg-amber-500 text-white',
+                              text: 'text-amber-700',
+                              textIdle: 'text-amber-600/80',
+                            },
+                            sky: {
+                              active: 'border-sky-500 bg-sky-50 ring-4 ring-sky-200 shadow-md scale-[1.02]',
+                              idle: 'border-sky-200 bg-white/80 hover:border-sky-300 hover:bg-sky-50/50',
+                              symbol: 'bg-sky-100 text-sky-600',
+                              symbolActive: 'bg-sky-500 text-white',
+                              text: 'text-sky-700',
+                              textIdle: 'text-sky-600/80',
+                            },
+                            teal: {
+                              active: 'border-teal-500 bg-teal-50 ring-4 ring-teal-200 shadow-md scale-[1.02]',
+                              idle: 'border-teal-200 bg-white/80 hover:border-teal-300 hover:bg-teal-50/50',
+                              symbol: 'bg-teal-100 text-teal-600',
+                              symbolActive: 'bg-teal-500 text-white',
+                              text: 'text-teal-700',
+                              textIdle: 'text-teal-600/80',
+                            },
+                            fuchsia: {
+                              active: 'border-fuchsia-500 bg-fuchsia-50 ring-4 ring-fuchsia-200 shadow-md scale-[1.02]',
+                              idle: 'border-fuchsia-200 bg-white/80 hover:border-fuchsia-300 hover:bg-fuchsia-50/50',
+                              symbol: 'bg-fuchsia-100 text-fuchsia-600',
+                              symbolActive: 'bg-fuchsia-500 text-white',
+                              text: 'text-fuchsia-700',
+                              textIdle: 'text-fuchsia-600/80',
+                            },
+                            cyan: {
+                              active: 'border-cyan-500 bg-cyan-50 ring-4 ring-cyan-200 shadow-md scale-[1.02]',
+                              idle: 'border-cyan-200 bg-white/80 hover:border-cyan-300 hover:bg-cyan-50/50',
+                              symbol: 'bg-cyan-100 text-cyan-600',
+                              symbolActive: 'bg-cyan-500 text-white',
+                              text: 'text-cyan-700',
+                              textIdle: 'text-cyan-600/80',
+                            },
+                            lime: {
+                              active: 'border-lime-500 bg-lime-50 ring-4 ring-lime-200 shadow-md scale-[1.02]',
+                              idle: 'border-lime-200 bg-white/80 hover:border-lime-300 hover:bg-lime-50/50',
+                              symbol: 'bg-lime-100 text-lime-700',
+                              symbolActive: 'bg-lime-500 text-white',
+                              text: 'text-lime-700',
+                              textIdle: 'text-lime-700/80',
+                            },
+                            slate: {
+                              active: 'border-slate-500 bg-slate-50 ring-4 ring-slate-200 shadow-md scale-[1.02]',
+                              idle: 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-slate-50/50',
+                              symbol: 'bg-slate-100 text-slate-600',
+                              symbolActive: 'bg-slate-500 text-white',
+                              text: 'text-slate-700',
+                              textIdle: 'text-slate-600/80',
+                            },
+                          };
+                          const colors = colorMap[option.color] ?? colorMap.green;
+                          const lockSequence = CURRICULUM_UNLOCK_SEQUENCE.find(({ mode }) => mode === option.id);
+                          const unlockHint = lockSequence
+                            ? `Unlock after mastering ${getOperationOption(lockSequence.prerequisite).label}`
+                            : null;
+                          return (
+                            <div key={option.id} className="w-full shrink-0 px-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCarouselIndex(getOperationIndex(option.id));
+                                  if (isUnlocked) {
+                                    setSelectedOperation(option.id);
+                                  }
+                                }}
+                                aria-pressed={isActive}
+                                disabled={!isUnlocked}
+                                aria-label={`Practice ${option.label}`}
+                                className={`flex w-full flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-4 font-bold transition-all ${
+                                  isActive ? colors.active : colors.idle
+                                } ${
+                                  isUnlocked
+                                    ? ''
+                                    : 'cursor-not-allowed border-dashed border-slate-300 bg-slate-100/80 opacity-70'
+                                }`}
+                              >
+                                <span
+                                  className={`flex h-11 w-11 items-center justify-center rounded-xl text-2xl font-black transition-colors ${
+                                    isActive ? colors.symbolActive : colors.symbol
+                                  }`}
+                                >
+                                  {option.symbol}
+                                </span>
+                                <span className={`text-sm font-bold ${isActive ? colors.text : colors.textIdle}`}>
+                                  {option.label}
+                                </span>
+                                {isActive && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600">
+                                    ✓ Selected
+                                  </span>
+                                )}
+                                {!isUnlocked && unlockHint && (
+                                  <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                    🔒 {unlockHint}
+                                  </span>
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-1.5" aria-label="Challenge pages">
+                      {OPERATION_OPTIONS.map((option, index) => (
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => {
-                            if (isUnlocked) {
-                              setSelectedOperation(option.id);
-                            }
-                          }}
-                          aria-pressed={isActive}
-                          disabled={!isUnlocked}
-                          aria-label={`Practice ${option.label}`}
-                          className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 font-bold transition-all ${
-                            isActive ? colors.active : colors.idle
-                          } ${
-                            isUnlocked
-                              ? ''
-                              : 'cursor-not-allowed border-dashed border-slate-300 bg-slate-100/80 opacity-70'
+                          aria-label={`Go to ${option.label}`}
+                          onClick={() => setCarouselIndex(index)}
+                          className={`h-2 rounded-full transition-all ${
+                            index === carouselIndex ? 'w-5 bg-indigo-500' : 'w-2 bg-indigo-200'
                           }`}
-                        >
-                          <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black transition-colors ${
-                              isActive ? colors.symbolActive : colors.symbol
-                            }`}
-                          >
-                            {option.symbol}
-                          </span>
-                          <span className={`text-xs font-bold ${isActive ? colors.text : colors.textIdle}`}>
-                            {option.label}
-                          </span>
-                          {isActive && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-white/80 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600">
-                              ✓ Selected
-                            </span>
-                          )}
-                          {!isUnlocked && unlockHint && (
-                            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                              🔒 {unlockHint}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-center text-xs text-indigo-500">
+                      Viewing: {currentCarouselOption.label}
+                    </p>
                   </div>
                   <div className="mt-3 rounded-xl border border-indigo-100 bg-white/80 p-3">
                     <p className="text-xs font-bold uppercase tracking-wide text-indigo-500">
