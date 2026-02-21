@@ -50,14 +50,40 @@ Open http://localhost:3000 to view the app in your browser.
 - `npm start` - Run the app in development mode
 - `npm test` - Interactive test runner
 - `npm run test:ci` - Run tests once (CI-friendly)
+- `npm run e2e` - Run Playwright smoke tests in headless Chromium
+- `npm run e2e:headed` - Run Playwright smoke tests in headed Chromium (local debugging)
+- `npm run verify` - Run build + unit + e2e in sequence
 - `npm run build` - Production build
 - `npm run deploy` - Build and deploy to GitHub Pages
 
 ## Testing
 
 ```bash
+npx --yes playwright install chromium
 npm run test:ci
+npm run e2e
 ```
+
+Run the full fast-feedback verification suite with:
+
+```bash
+npm run verify
+```
+
+`npm run e2e` uses Chromium only.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every `push` and `pull_request` and performs:
+
+1. `npm ci`
+2. `npm run build`
+3. `npm run test:ci`
+4. `npx --yes playwright install --with-deps chromium`
+5. `npm run e2e`
+
+If end-to-end tests fail, Playwright artifacts (`playwright-report/` and
+`test-results/`) are uploaded automatically.
 
 ## Documentation
 

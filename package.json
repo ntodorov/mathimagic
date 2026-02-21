@@ -17,6 +17,9 @@
     "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "test:ci": "CI=true react-scripts test --watchAll=false",
+    "e2e": "npx --yes playwright test",
+    "e2e:headed": "npx --yes playwright test --headed --project=chromium",
+    "verify": "npm run build && npm run test:ci && npm run e2e",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
